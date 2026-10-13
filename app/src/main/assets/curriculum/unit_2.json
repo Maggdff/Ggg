@@ -1,0 +1,95 @@
+{
+  "id":"u2","title":"العمليات الحسابية والمنطقية","description":"الجمع والطرح والمقارنة والعمليات المنطقية",
+  "icon":"calculate","order":2,
+  "lessons":[
+    {
+      "id":"u2l1","unitId":"u2","title":"العمليات الحسابية","order":1,"sourcePage":29,
+      "contentBlocks":[
+        {"type":"note","lines":["الجمع: + → x1+x2","الطرح: - → x1-x2","الضرب: * → x1*x2","القسمة: / → x1/x2","باقي القسمة الصحيحة: % → x1%x2","الزيادة بواحد: ++ → x1++ أو ++x1","النقصان بواحد: -- → x1-- أو --x1"]}
+      ],
+      "exercises":[
+        {"id":"u2l1e1","lessonId":"u2l1","type":"MCQ","question":"ما رمز عملية باقي القسمة الصحيحة في C++؟","sourcePage":29,
+          "options":["/","%","//","\\"],"correctOptionIndex":1},
+        {"id":"u2l1e2","lessonId":"u2l1","type":"MCQ","question":"ما رمز عملية الضرب في C++؟","sourcePage":29,
+          "options":["x","*","^",".."],"correctOptionIndex":1}
+      ]
+    },
+    {
+      "id":"u2l2","unitId":"u2","title":"أولويات العمليات الحسابية","order":2,"sourcePage":30,
+      "contentBlocks":[
+        {"type":"text","lines":["ترتيب العمليات من الأقوى إلى الأضعف:","1. الزيادة والنقصان عندما تأتي قبل القيمة.","2. الأقواس.","3. إشارة السالب.","4. القسمة وباقي القسمة والضرب (لهم نفس الأولوية).","5. الجمع والطرح.","6. المساواة.","7. الزيادة والنقصان عندما تأتي بعد القيمة.","ملاحظة: في حال وجود عمليتين أو أكثر بنفس الأولوية نبدأ بتنفيذ العملية الأقرب فالأقرب."]}
+      ],
+      "exercises":[
+        {"id":"u2l2e1","lessonId":"u2l2","type":"MCQ","question":"أيهما له الأولوية الأعلى: الأقواس أم الجمع؟","sourcePage":30,
+          "options":["الأقواس","الجمع","متساويان","لا علاقة بينهما"],"correctOptionIndex":0},
+        {"id":"u2l2e2","lessonId":"u2l2","type":"LINE_ORDERING","question":"رتّب العمليات التالية من الأقوى إلى الأضعف:","sourcePage":30,
+          "shuffledLines":["المساواة","الجمع والطرح","الأقواس","القسمة والضرب","إشارة السالب","الزيادة قبل القيمة"],
+          "correctOrder":[5,2,4,3,1,0]}
+      ]
+    },
+    {
+      "id":"u2l3","unitId":"u2","title":"تمرين محلول على الأولويات","order":3,"sourcePage":31,
+      "contentBlocks":[
+        {"type":"code","lines":["// افترض أن a=5, b=10, c=8","x = --a + 3*b - c/a * b;","// الحل:","a = --a = 4","t1 = 3*b = 30","t2 = c/a = 8/4 = 2","t3 = t2*b = 2*10 = 20","t4 = a+t1 = 4+30 = 34","t5 = t4-t3 = 34-20 = 14","x = t5 = 14"]}
+      ],
+      "exercises":[
+        {"id":"u2l3e1","lessonId":"u2l3","type":"OUTPUT_PREDICTION","question":"إذا كان a=5, b=10, c=8 وطبعنا x من المعادلة x = --a + 3*b - c/a*b، فما قيمة x؟","sourcePage":31,
+          "code":["int a=5,b=10,c=8,x;","x = --a + 3*b - c/a * b;","cout << x;"],"expectedOutput":"14"},
+        {"id":"u2l3e2","lessonId":"u2l3","type":"MCQ","question":"ما قيمة a بعد تنفيذ --a في المثال (a=5 ابتداءً)؟","sourcePage":31,
+          "options":["5","4","6","0"],"correctOptionIndex":1},
+        {"id":"u2l3e3","lessonId":"u2l3","type":"MCQ","question":"ما ناتج c/a بعد أن أصبحت a=4 و c=8؟","sourcePage":31,
+          "options":["0.5","32","2","8"],"correctOptionIndex":2}
+      ]
+    },
+    {
+      "id":"u2l4","unitId":"u2","title":"برنامج جمع عددين والتعليقات","order":4,"sourcePage":32,
+      "contentBlocks":[
+        {"type":"code","lines":["#include < iostream>","using namespace std;","main ( )","{","int x1 , x2, s;   // تعريف المتغيرات","cout <<\"x1= \";      // طباعة توضيحية","cin >> x1 ;          // قراءة متغير","cout << \" x2 =\";","cin >> x2 ;","s = x1 + x2 ;  /* التغير الجديد x3 إجراء عملية الجمع والإسناد إلى */","cout << \"sum = \" <<s ;   // تعليمة الطباعة المتعددة","}"]},
+        {"type":"note","lines":["النص الذي يرد على يمين العلامة // إلى نهاية السطر يعتبر عبارة عن تعليق وليس جزءًا من سير تنفيذ البرنامج.","النص الذي يقع ما بين العلامتين /* و */ كذلك هو تعليق.","التعليق هو للتوضيح فقط ولا يؤثر على تنفيذ البرنامج."]}
+      ],
+      "exercises":[
+        {"id":"u2l4e1","lessonId":"u2l4","type":"MCQ","question":"ما وظيفة الرمز // في بداية سطر؟","sourcePage":32,
+          "options":["تنفيذ عملية حسابية","جعل باقي السطر تعليقًا لا ينفذ","إنهاء البرنامج","طباعة //"],"correctOptionIndex":1},
+        {"id":"u2l4e2","lessonId":"u2l4","type":"CODE_COMPLETION","question":"أكمل كود جمع عددين صحيحين:","sourcePage":32,
+          "codeTemplate":["int x1, x2, s;","cin >> x1 >> x2;","s = x1 ___ x2;","cout << s;"],"blankAnswers":["+"]},
+        {"id":"u2l4e3","lessonId":"u2l4","type":"RUN_CODE","question":"شغّل هذا البرنامج بإدخال x1=10 و x2=5 وشاهد الناتج فعليًا:","sourcePage":32,
+          "code":["#include <iostream>","using namespace std;","main()","{","int x1, x2, s;","cout << \"x1= \";","cin >> x1;","cout << \"x2= \";","cin >> x2;","s = x1 + x2;","cout << \"sum = \" << s;","}"],
+          "stdin":["10","5"],"expectedOutput":"x1= x2= sum = 15"}
+      ]
+    },
+    {
+      "id":"u2l5","unitId":"u2","title":"أدوات العلاقات","order":5,"sourcePage":34,
+      "contentBlocks":[
+        {"type":"note","lines":["هل x تساوي y: == (مثال x==y)","هل x لا تساوي y: != (مثال x!=y)","هل x أصغر من y: < (مثال x<y)","هل x أكبر من y: > (مثال x>y)","هل x أكبر أو يساوي y: >= (مثال x>=y)","هل x أصغر أو يساوي y: <= (مثال x<=y)"]}
+      ],
+      "exercises":[
+        {"id":"u2l5e1","lessonId":"u2l5","type":"MCQ","question":"ما رمز «لا تساوي» في C++؟","sourcePage":34,"options":["<>","!=","==","~="],"correctOptionIndex":1},
+        {"id":"u2l5e2","lessonId":"u2l5","type":"MCQ","question":"ما رمز «المساواة» (اختبار التساوي) في C++؟","sourcePage":34,"options":["=","==","===","eq"],"correctOptionIndex":1}
+      ]
+    },
+    {
+      "id":"u2l6","unitId":"u2","title":"العمليات المنطقية","order":6,"sourcePage":35,
+      "contentBlocks":[
+        {"type":"text","lines":["تستخدم العمليات المنطقية لإيجاد ناتج التعبير المنطقي، وناتج أي عملية منطقية هو true أو false.","not: ! | and: && | or: ||","الترتيب من الأقوى إلى الأضعف: not ثم and ثم or."]}
+      ],
+      "exercises":[
+        {"id":"u2l6e1","lessonId":"u2l6","type":"MCQ","question":"ما رمز العملية المنطقية and في C++؟","sourcePage":35,"options":["&","&&","and","||"],"correctOptionIndex":1},
+        {"id":"u2l6e2","lessonId":"u2l6","type":"MCQ","question":"ما رمز العملية المنطقية not في C++؟","sourcePage":35,"options":["~","!","not","--"],"correctOptionIndex":1},
+        {"id":"u2l6e3","lessonId":"u2l6","type":"MCQ","question":"أي العمليات المنطقية لها الأولوية الأقوى؟","sourcePage":35,"options":["or","and","not","كلها متساوية"],"correctOptionIndex":2}
+      ]
+    },
+    {
+      "id":"u2l7","unitId":"u2","title":"تقييم تعبير منطقي مركب","order":7,"sourcePage":36,
+      "contentBlocks":[
+        {"type":"code","lines":["// افترض أن a=5, b=10, c=8","(a > b || c != 0 && b >= c || 2*b < c)","// a>b = False","// c!=0 = True","// b>=c = True  →  (c!=0 && b>=c) = True","// 2*b<c = False","// النتيجة النهائية: True"]}
+      ],
+      "exercises":[
+        {"id":"u2l7e1","lessonId":"u2l7","type":"MCQ","question":"بافتراض a=5,b=10,c=8، ما ناتج (a > b)؟","sourcePage":36,"options":["True","False"],"correctOptionIndex":1},
+        {"id":"u2l7e2","lessonId":"u2l7","type":"MCQ","question":"بافتراض a=5,b=10,c=8، ما ناتج (c != 0)؟","sourcePage":36,"options":["True","False"],"correctOptionIndex":0},
+        {"id":"u2l7e3","lessonId":"u2l7","type":"MCQ","question":"بافتراض a=5,b=10,c=8، ما ناتج (2*b < c)؟","sourcePage":36,"options":["True","False"],"correctOptionIndex":1},
+        {"id":"u2l7e4","lessonId":"u2l7","type":"OUTPUT_PREDICTION","question":"ما الناتج النهائي للتعبير: (a>b || c!=0 && b>=c || 2*b<c) بافتراض a=5,b=10,c=8؟","sourcePage":36,
+          "code":["bool r = (a>b || c!=0 && b>=c || 2*b<c);"],"expectedOutput":"True"}
+      ]
+    }
+  ]
+}
