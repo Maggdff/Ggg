@@ -1,0 +1,128 @@
+{
+  "id":"u3","title":"الجمل الشرطية","description":"if, if..else, switch",
+  "icon":"rule","order":3,
+  "lessons":[
+    {
+      "id":"u3l1","unitId":"u3","title":"جملة الشرط if","order":1,"sourcePage":38,
+      "contentBlocks":[
+        {"type":"code","lines":["if (الشرط)","أمر واحد ;","// أو","if (الشرط)","{","مجموعة أوامر","}"]},
+        {"type":"code","lines":["// مثال: إذا كانت علامة الطالب x أكبر أو يساوي 50 اطبع passed","if ( x >= 50) cout <<\"passed\";"]}
+      ],
+      "exercises":[
+        {"id":"u3l1e1","lessonId":"u3l1","type":"OUTPUT_PREDICTION","question":"إذا كانت x = 60، فما ناتج تنفيذ: if(x>=50) cout<<\"passed\";","sourcePage":38,
+          "code":["int x = 60;","if (x>=50) cout<<\"passed\";"],"expectedOutput":"passed"},
+        {"id":"u3l1e2","lessonId":"u3l1","type":"CODE_COMPLETION","question":"أكمل الشرط لطباعة passed عند بلوغ 50 فأكثر:","sourcePage":38,
+          "codeTemplate":["if ( x ___ 50) cout << \"passed\";"],"blankAnswers":[">="]}
+      ]
+    },
+    {
+      "id":"u3l2","unitId":"u3","title":"مقارنة عددين بجمل if منفصلة","order":2,"sourcePage":39,
+      "contentBlocks":[
+        {"type":"code","lines":["#include <iostream>","using namespace std;","main ()","{","int a, b;","cout<<\" a=\";","cin>>a;","cout<<\" b=\";","cin>>b;","if ( a > b ) cout <<a<<\" >\" <<b;","if ( a < b ) cout <<a<<\" <\"<<b ;","if ( a == b ) cout <<a<<\"=\" <<b;","}"]}
+      ],
+      "exercises":[
+        {"id":"u3l2e1","lessonId":"u3l2","type":"OUTPUT_PREDICTION","question":"إذا أدخل المستخدم a=5 و b=8، فما الناتج المطبوع؟","sourcePage":39,
+          "code":["int a=5,b=8;","if(a>b) cout<<a<<\" >\"<<b;","if(a<b) cout<<a<<\" <\"<<b;","if(a==b) cout<<a<<\"=\"<<b;"],
+          "stdin":[],"expectedOutput":"5 <8"},
+        {"id":"u3l2e2","lessonId":"u3l2","type":"RUN_CODE","question":"شغّل البرنامج بإدخال a=9 و b=9:","sourcePage":39,
+          "code":["#include <iostream>","using namespace std;","main()","{","int a,b;","cin>>a;","cin>>b;","if(a>b) cout<<a<<\" >\"<<b;","if(a<b) cout<<a<<\" <\"<<b;","if(a==b) cout<<a<<\"=\"<<b;","}"],
+          "stdin":["9","9"],"expectedOutput":"9=9"}
+      ]
+    },
+    {
+      "id":"u3l3","unitId":"u3","title":"جملة الشرط if..else","order":3,"sourcePage":40,
+      "contentBlocks":[
+        {"type":"code","lines":["if (الشرط)","أمر واحد ; // أو مجموعة أوامر","else","أمر واحد ; // أو مجموعة أوامر"]},
+        {"type":"code","lines":["if ( x >= 50)","    cout << \" passed \" ;","else","    cout << \"failed\" ;"]}
+      ],
+      "exercises":[
+        {"id":"u3l3e1","lessonId":"u3l3","type":"OUTPUT_PREDICTION","question":"إذا كانت x=35، فما ناتج هذا الكود؟","sourcePage":40,
+          "code":["int x=35;","if(x>=50) cout<<\"passed\";","else cout<<\"failed\";"],"expectedOutput":"failed"},
+        {"id":"u3l3e2","lessonId":"u3l3","type":"BUG_FINDING","question":"حدد سطر الخطأ في هذا الكود (شرط ناقص قوس):","sourcePage":40,
+          "buggyCode":["if ( x >= 50","    cout << \"passed\" ;","else","    cout << \"failed\" ;"],
+          "correctLineIndex":0,"fixedLineText":"if ( x >= 50 )",
+          "explanation":"ينقص القوس الختامي ) لشرط if."}
+      ]
+    },
+    {
+      "id":"u3l4","unitId":"u3","title":"تحديد فردي أو زوجي","order":4,"sourcePage":41,
+      "contentBlocks":[
+        {"type":"code","lines":["#include < iostream>","using namespace std;","main ()","{","int a ;","cout <<\" a =\";","cin>>a;","if ( a % 2 == 1)","    cout << \" Odd \" ;","else","    cout << \" Even \" ;","}"]}
+      ],
+      "exercises":[
+        {"id":"u3l4e1","lessonId":"u3l4","type":"OUTPUT_PREDICTION","question":"إذا أدخل المستخدم a=7، فماذا يطبع البرنامج؟","sourcePage":41,
+          "code":["int a=7;","if(a%2==1) cout<<\"Odd\";","else cout<<\"Even\";"],"expectedOutput":"Odd"},
+        {"id":"u3l4e2","lessonId":"u3l4","type":"CODE_COMPLETION","question":"أكمل شرط التحقق من كون العدد فرديًا:","sourcePage":41,
+          "codeTemplate":["if ( a % 2 == ___ )","    cout << \"Odd\";","else","    cout << \"Even\";"],"blankAnswers":["1"]},
+        {"id":"u3l4e3","lessonId":"u3l4","type":"RUN_CODE","question":"شغّل البرنامج بإدخال a=12:","sourcePage":41,
+          "code":["#include <iostream>","using namespace std;","main()","{","int a;","cin>>a;","if(a%2==1) cout<<\"Odd\";","else cout<<\"Even\";","}"],
+          "stdin":["12"],"expectedOutput":"Even"}
+      ]
+    },
+    {
+      "id":"u3l5","unitId":"u3","title":"سلسلة if..else if لتقدير الطالب","order":5,"sourcePage":43,
+      "contentBlocks":[
+        {"type":"code","lines":["if ( mark>= 90 && mark<=100 )","    cout << \"Excellent\" ;","else if ( mark >= 80 && mark<90 )","    cout << \"V. Good\" ;","else if ( mark >= 65 && mark<80 )","    cout << \"Good\" ;","else if ( mark >= 50 && mark<65 )","    cout << \"Pass\" ;","else if ( mark >= 0 && mark<50 )","    cout << \"Fail\" ;","else","    cout << \"error\" ;"]}
+      ],
+      "exercises":[
+        {"id":"u3l5e1","lessonId":"u3l5","type":"OUTPUT_PREDICTION","question":"إذا كانت mark=85، فما التقدير المطبوع؟","sourcePage":43,
+          "code":["int mark=85;","if(mark>=90&&mark<=100) cout<<\"Excellent\";","else if(mark>=80&&mark<90) cout<<\"V. Good\";","else if(mark>=65&&mark<80) cout<<\"Good\";","else if(mark>=50&&mark<65) cout<<\"Pass\";","else if(mark>=0&&mark<50) cout<<\"Fail\";","else cout<<\"error\";"],
+          "expectedOutput":"V. Good"},
+        {"id":"u3l5e2","lessonId":"u3l5","type":"OUTPUT_PREDICTION","question":"إذا كانت mark=30، فما التقدير المطبوع؟","sourcePage":43,
+          "code":["int mark=30;","// نفس سلسلة الشروط أعلاه"],"expectedOutput":"Fail"},
+        {"id":"u3l5e3","lessonId":"u3l5","type":"OUTPUT_PREDICTION","question":"إذا كانت mark=150 (خارج النطاق)، فماذا يطبع البرنامج؟","sourcePage":43,
+          "code":["int mark=150;"],"expectedOutput":"error"}
+      ]
+    },
+    {
+      "id":"u3l6","unitId":"u3","title":"شرط مركب - إيجاد القاسم","order":6,"sourcePage":44,
+      "contentBlocks":[
+        {"type":"code","lines":["if ( b! = 0 && a % b == 0 )","    cout << b<< \" is divisor \" <<a;","else","    cout <<b<<\" is not divisor \" << a;"]}
+      ],
+      "exercises":[
+        {"id":"u3l6e1","lessonId":"u3l6","type":"OUTPUT_PREDICTION","question":"إذا كان a=10 و b=5، فماذا يطبع البرنامج؟","sourcePage":44,
+          "code":["int a=10,b=5;","if(b!=0 && a%b==0) cout<<b<<\" is divisor \"<<a;","else cout<<b<<\" is not divisor \"<<a;"],
+          "expectedOutput":"5 is divisor 10"},
+        {"id":"u3l6e2","lessonId":"u3l6","type":"CODE_COMPLETION","question":"أكمل الشرط للتحقق من أن b قاسم لـ a:","sourcePage":44,
+          "codeTemplate":["if ( b != 0 ___ a % b == 0 )"],"blankAnswers":["&&"]}
+      ]
+    },
+    {
+      "id":"u3l7","unitId":"u3","title":"إيجاد أصغر قيمة من ثلاث (if متداخل)","order":7,"sourcePage":45,
+      "contentBlocks":[
+        {"type":"code","lines":["if ( a < b && a < c )","    cout << \" min is\" << a ;","else if ( b < c )","    cout << \" min is \" << b ;","else","    cout << \" min is \" << c ;"]}
+      ],
+      "exercises":[
+        {"id":"u3l7e1","lessonId":"u3l7","type":"OUTPUT_PREDICTION","question":"إذا كان a=9, b=4, c=7، فما القيمة الصغرى المطبوعة؟","sourcePage":45,
+          "code":["int a=9,b=4,c=7;","if(a<b&&a<c) cout<<\" min is\"<<a;","else if(b<c) cout<<\" min is \"<<b;","else cout<<\" min is \"<<c;"],
+          "expectedOutput":" min is 4"},
+        {"id":"u3l7e2","lessonId":"u3l7","type":"LINE_ORDERING","question":"رتّب أسطر كود إيجاد أصغر قيمة من ثلاث أعداد:","sourcePage":45,
+          "shuffledLines":["else cout << \" min is \" << c ;","if ( a < b && a < c ) cout << \" min is\" << a ;","else if ( b < c ) cout << \" min is \" << b ;"],
+          "correctOrder":[1,2,0]}
+      ]
+    },
+    {
+      "id":"u3l8","unitId":"u3","title":"جملة switch المتعدد","order":8,"sourcePage":46,
+      "contentBlocks":[
+        {"type":"code","lines":["switch (القيمة المفتاحية)","{","case ثابت1 : مجموعة أوامر1 ; break;","case ثابت2 : مجموعة أوامر2 ; break;","...","default : أوامر افتراضية تنفذ في حال لم تتحقق أية حالة مما سبق;","}"]},
+        {"type":"code","lines":["int c;","cout << \"Enter the week day no. : \" ;","cin >> c ;","switch (c)","{","case 1 : cout << \" saturday \" ; break ;","case 2 : cout << \" sunday \" ; break ;","case 3 : cout << \" monday \" ; break ;","case 4 : cout << \" tuesday \" ; break ;","case 5 : cout << \" wednesday \" ; break ;","case 6 : cout << \" thursday \" ; break ;","case 7 : cout << \" friday \" ; break ;","default : cout << \" This number is out of range \" ;","}"]}
+      ],
+      "exercises":[
+        {"id":"u3l8e1","lessonId":"u3l8","type":"MCQ","question":"ما وظيفة أمر break داخل switch؟","sourcePage":46,
+          "options":["إنهاء تنفيذ البرنامج كله","الخروج من جملة switch بعد تنفيذ الحالة المطابقة","تكرار الحالة","طباعة خطأ"],"correctOptionIndex":1},
+        {"id":"u3l8e2","lessonId":"u3l8","type":"MCQ","question":"متى تُنفذ أوامر default؟","sourcePage":46,
+          "options":["دائمًا أولًا","عندما لا تتحقق أي حالة case سابقة","عند كل حالة","لا تُنفذ أبدًا"],"correctOptionIndex":1},
+        {"id":"u3l8e3","lessonId":"u3l8","type":"OUTPUT_PREDICTION","question":"إذا أدخل المستخدم c=3، فماذا يطبع برنامج يوم الأسبوع؟","sourcePage":47,
+          "code":["int c=3;","switch(c){","case 1: cout<<\"saturday\"; break;","case 2: cout<<\"sunday\"; break;","case 3: cout<<\"monday\"; break;","default: cout<<\"out of range\";","}"],
+          "expectedOutput":"monday"},
+        {"id":"u3l8e4","lessonId":"u3l8","type":"BUG_FINDING","question":"حدد السطر الناقص (نسيان break) الذي قد يسبب تنفيذ أكثر من حالة:","sourcePage":47,
+          "buggyCode":["switch(c){","case 1: cout<<\"saturday\";","case 2: cout<<\"sunday\"; break;","}"],
+          "correctLineIndex":1,"fixedLineText":"case 1: cout<<\"saturday\"; break;",
+          "explanation":"بدون break بعد case 1 سيتم تنفيذ case 2 أيضًا حتى لو لم تتحقق (انسياب سقوط)."},
+        {"id":"u3l8e5","lessonId":"u3l8","type":"RUN_CODE","question":"شغّل برنامج يوم الأسبوع بإدخال c=7:","sourcePage":47,
+          "code":["#include <iostream>","using namespace std;","main()","{","int c;","cin>>c;","switch(c){","case 1: cout<<\"saturday\"; break;","case 2: cout<<\"sunday\"; break;","case 3: cout<<\"monday\"; break;","case 4: cout<<\"tuesday\"; break;","case 5: cout<<\"wednesday\"; break;","case 6: cout<<\"thursday\"; break;","case 7: cout<<\"friday\"; break;","default: cout<<\"out of range\";","}","}"],
+          "stdin":["7"],"expectedOutput":"friday"}
+      ]
+    }
+  ]
+}
