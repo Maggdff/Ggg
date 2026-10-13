@@ -1,0 +1,122 @@
+{
+  "id": "u1", "title": "مدخل إلى لغة C++", "description": "التعرف على بنية البرنامج والمتغيرات",
+  "icon": "code", "order": 1,
+  "lessons": [
+    {
+      "id":"u1l1","unitId":"u1","title":"تعريف لغة C++","order":1,"sourcePage":18,
+      "contentBlocks":[
+        {"type":"text","lines":["لغة C++ تعتبر من اللغات العالية المستوى High Level Language حيث تكتب نصوصها بلغة قريبة من لغة الإنسان (اللغة الانجليزية).","يقوم مترجم لغة C++ بتحويل هذه النصوص من اللغة عالية المستوى إلى لغة متدنية المستوى تدعى بلغة الآلة Machine Language بحيث يستطيع المعالج أن يتعامل معها وينفذ تعليماتها.","تستخدم لغة C++ للبرمجة بأسلوب البرمجة المهيكلة وبأسلوب البرمجة الكائنية (الهدفية)."]}
+      ],
+      "exercises":[
+        {"id":"u1l1e1","lessonId":"u1l1","type":"MCQ","question":"لغة C++ من أي نوع من اللغات؟","sourcePage":18,
+          "options":["لغة متدنية المستوى","لغة عالية المستوى High Level Language","لغة آلة","لا شيء مما سبق"],"correctOptionIndex":1},
+        {"id":"u1l1e2","lessonId":"u1l1","type":"MCQ","question":"ما اسم اللغة التي يفهمها المعالج مباشرة بعد الترجمة؟","sourcePage":18,
+          "options":["اللغة الإنجليزية","لغة الآلة Machine Language","لغة C","HTML"],"correctOptionIndex":1}
+      ]
+    },
+    {
+      "id":"u1l2","unitId":"u1","title":"الشكل العام للبرنامج","order":2,"sourcePage":19,
+      "contentBlocks":[
+        {"type":"code","lines":["#include <iostream>","using namespace std;","main ( )","{","    // هنا يتم الاعلان عن البيانات وكتابة نص البرنامج","}"]},
+        {"type":"note","lines":["#include <iostream>: المكتبة الخاصة بعمليات الادخال والاخراج.","main(): الدالة الرئيسية التي يبدأ منها تنفيذ البرنامج.","{ }: الأقواس تحدد بداية ونهاية الدالة الرئيسية."]}
+      ],
+      "exercises":[
+        {"id":"u1l2e1","lessonId":"u1l2","type":"MCQ","question":"ما وظيفة السطر #include <iostream> ؟","sourcePage":19,
+          "options":["تعريف المتغيرات","استدعاء المكتبة الخاصة بعمليات الإدخال والإخراج","إنهاء البرنامج","طباعة نص"],"correctOptionIndex":1},
+        {"id":"u1l2e2","lessonId":"u1l2","type":"LINE_ORDERING","question":"رتّب أسطر الشكل العام للبرنامج بالترتيب الصحيح:","sourcePage":19,
+          "shuffledLines":["}","main ( )","#include <iostream>","{","using namespace std;"],
+          "correctOrder":[2,4,1,3,0]}
+      ]
+    },
+    {
+      "id":"u1l3","unitId":"u1","title":"أول برنامج C++","order":3,"sourcePage":19,
+      "contentBlocks":[
+        {"type":"code","lines":["#include <iostream>","using namespace std;","main ( )","{","cout << \" welcome to c++ \" ;","}"]}
+      ],
+      "exercises":[
+        {"id":"u1l3e1","lessonId":"u1l3","type":"OUTPUT_PREDICTION","question":"ما ناتج تنفيذ هذا البرنامج؟","sourcePage":19,
+          "code":["#include <iostream>","using namespace std;","main ( )","{","cout << \" welcome to c++ \" ;","}"],
+          "expectedOutput":" welcome to c++ "},
+        {"id":"u1l3e2","lessonId":"u1l3","type":"CODE_COMPLETION","question":"أكمل الكود لطباعة الجملة الترحيبية:","sourcePage":19,
+          "codeTemplate":["#include <iostream>","using namespace std;","main ( )","{","___ << \" welcome to c++ \" ;","}"],
+          "blankAnswers":["cout"]},
+        {"id":"u1l3e3","lessonId":"u1l3","type":"BUG_FINDING","question":"حدد السطر الذي يحتوي على خطأ في هذا الكود:","sourcePage":19,
+          "buggyCode":["#include <iostream>","using namespace std;","main ( )","{","cout << \" welcome to c++ \"","}"],
+          "correctLineIndex":4,"fixedLineText":"cout << \" welcome to c++ \" ;",
+          "explanation":"ينقص الفاصلة المنقوطة ; في نهاية جملة cout."}
+      ]
+    },
+    {
+      "id":"u1l4","unitId":"u1","title":"عمليتا الإدخال والإخراج","order":4,"sourcePage":21,
+      "contentBlocks":[
+        {"type":"text","lines":["عملية الإدخال cin، الصيغة العامة: cin >> اسم المتغير1 >> اسم المتغير2 >> اسم المتغير3 ;","مثال: cin>> a >> b >> c;"]},
+        {"type":"text","lines":["عملية الإخراج cout، الصيغة العامة: cout << القيمة1 << القيمة2 << القيمة3 ;","مثال: cout << a << b << c;"]}
+      ],
+      "exercises":[
+        {"id":"u1l4e1","lessonId":"u1l4","type":"MCQ","question":"ما رمز عملية الإدخال في C++؟","sourcePage":21,
+          "options":["<<","cin","cout",">>"],"correctOptionIndex":1},
+        {"id":"u1l4e2","lessonId":"u1l4","type":"CODE_COMPLETION","question":"أكمل جملة قراءة ثلاثة متغيرات a, b, c:","sourcePage":21,
+          "codeTemplate":["cin ___ a >> b >> c ;"],"blankAnswers":[">>"]}
+      ]
+    },
+    {
+      "id":"u1l5","unitId":"u1","title":"تنسيق النصوص","order":5,"sourcePage":22,
+      "contentBlocks":[
+        {"type":"text","lines":["المؤثر \\t يترك فراغًا بعدد ثمان مسافات (tab).","المؤثر \\n ينقل مؤشر الكتابة إلى سطر جديد.","ملاحظة: الأمر cout<<\"\\n\"; يكافئ الأمر cout<<endl;"]},
+        {"type":"code","lines":["#include <iostream>","using namespace std;","main ( )","{","cout <<\"welcome \\t to \\t c++\" ;","cout <<\"welcome \\n to \\n c++\" ;","}"]}
+      ],
+      "exercises":[
+        {"id":"u1l5e1","lessonId":"u1l5","type":"OUTPUT_PREDICTION","question":"ما ناتج تنفيذ هذا الكود؟ (اكتب فقط ما يطبعه السطر الثاني كل كلمة بسطر)","sourcePage":22,
+          "code":["cout <<\"welcome \\n to \\n c++\" ;"],"expectedOutput":"welcome \nto \nc++ "},
+        {"id":"u1l5e2","lessonId":"u1l5","type":"MCQ","question":"ماذا يكافئ الأمر cout<<endl; ؟","sourcePage":23,
+          "options":["cout<<\"\\t\";","cout<<\"\\n\";","cin>>x;","لا شيء"],"correctOptionIndex":1}
+      ]
+    },
+    {
+      "id":"u1l6","unitId":"u1","title":"المتغيرات Variables","order":6,"sourcePage":24,
+      "contentBlocks":[
+        {"type":"text","lines":["كل اسم من أسماء المتغيرات مثل x1, x2, x3 يتم وضعه في الذاكرة ويُعطى اسم name ونوع type وحجم size وقيمة value.","مثال: المتغير x1 يملك الاسم x1 والنوع int والحجم 4 بايت."]}
+      ],
+      "exercises":[
+        {"id":"u1l6e1","lessonId":"u1l6","type":"MCQ","question":"ما هي العناصر التي يمتلكها كل متغير؟","sourcePage":24,
+          "options":["اسم ونوع وحجم وقيمة فقط","لون وشكل","اسم فقط","قيمة فقط"],"correctOptionIndex":0}
+      ]
+    },
+    {
+      "id":"u1l7","unitId":"u1","title":"أنواع المتغيرات وأحجامها","order":7,"sourcePage":25,
+      "contentBlocks":[
+        {"type":"note","lines":["char: نوع حرفي، الحجم 1 byte","int: نوع صحيح، الحجم 4 bytes","short int: نوع صحيح قصير، الحجم 2 bytes","Long int: نوع صحيح مضاعف، الحجم 8 bytes","float: نوع حقيقي، الحجم 4 bytes","double: نوع حقيقي مضاعف، الحجم 8 bytes"]}
+      ],
+      "exercises":[
+        {"id":"u1l7e1","lessonId":"u1l7","type":"MCQ","question":"كم حجم المتغير من نوع int؟","sourcePage":25,"options":["1 byte","2 bytes","4 bytes","8 bytes"],"correctOptionIndex":2},
+        {"id":"u1l7e2","lessonId":"u1l7","type":"MCQ","question":"كم حجم المتغير من نوع char؟","sourcePage":25,"options":["1 byte","4 bytes","8 bytes","2 bytes"],"correctOptionIndex":0},
+        {"id":"u1l7e3","lessonId":"u1l7","type":"MCQ","question":"أي الأنواع التالية حجمه 8 bytes؟","sourcePage":25,"options":["int","float","double","char"],"correctOptionIndex":2}
+      ]
+    },
+    {
+      "id":"u1l8","unitId":"u1","title":"قواعد تسمية المتغيرات","order":8,"sourcePage":26,
+      "contentBlocks":[
+        {"type":"text","lines":["1. لا تكون أسماء المتغيرات من الكلمات المحجوزة مثل main.","2. يمكن أن يحتوي الاسم على حروف وأرقام والإشارة (_).","3. لا يجوز أن يبدأ الاسم برقم. مثال: 7up خطأ بسبب البداية برقم.","4. اللغة حساسة لحالة الحرف: المتغير A غير المتغير a."]}
+      ],
+      "exercises":[
+        {"id":"u1l8e1","lessonId":"u1l8","type":"MCQ","question":"أي أسماء المتغيرات التالية غير صحيح؟","sourcePage":26,
+          "options":["up7","my_var","7up","total1"],"correctOptionIndex":2},
+        {"id":"u1l8e2","lessonId":"u1l8","type":"MCQ","question":"هل المتغير A هو نفسه المتغير a في C++؟","sourcePage":26,
+          "options":["نعم دائمًا","لا، اللغة حساسة لحالة الحرف","فقط في الدوال","فقط مع الأرقام"],"correctOptionIndex":1}
+      ]
+    },
+    {
+      "id":"u1l9","unitId":"u1","title":"الإعلان عن المتغيرات","order":9,"sourcePage":27,
+      "contentBlocks":[
+        {"type":"text","lines":["الإعلان عن المتغير: تحديد نوع قيمة المتغير قبل استخدامه. الصيغة العامة: نوع المتغير اسم المتغير ;"]},
+        {"type":"code","lines":["int a ;","int b ;","float t;","// أو عند تعدد المتغيرات من نفس النوع:","int a, b ;"]}
+      ],
+      "exercises":[
+        {"id":"u1l9e1","lessonId":"u1l9","type":"CODE_COMPLETION","question":"أكمل الإعلان عن متغيرين صحيحين a و b في سطر واحد:","sourcePage":27,
+          "codeTemplate":["int a, ___ ;"],"blankAnswers":["b"]},
+        {"id":"u1l9e2","lessonId":"u1l9","type":"MCQ","question":"الغاية من الإعلان عن المتغير هي:","sourcePage":27,
+          "options":["حجز مساحة من الذاكرة بقدر حاجة المتغير اعتمادًا على نوعه","تلوين الشاشة","حذف المتغير","طباعة قيمة المتغير"],"correctOptionIndex":0}
+      ]
+    }
+  ]
+}
