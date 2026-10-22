@@ -1,5 +1,5 @@
 {
-  "name": "cpp-stars-quiz",
+  "name": "اختبار طباعة اشكال c++ للدكتورة سمية",
   "private": true,
   "scripts": { "start": "bun index.tsx" }
 }
