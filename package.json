@@ -1,5 +1,0 @@
-{
-  "name": "cpp-stars-quiz",
-  "private": true,
-  "scripts": { "start": "bun index.tsx" }
-}
