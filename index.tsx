@@ -48,7 +48,7 @@ let n=0,tries=0;while(n<24&&tries++<500){const p=hardProg();if(sim(p).indexOf("*
 n=0;tries=0;while(n<6&&tries++<100)if(add(hp(),hard))n++;
 const QS=[...sh(base),...sh(hard)];
 
-const H=String.raw`<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=color-scheme content="light dark"><title>اختبار أنماط النجوم C++</title>
+const H=String.raw`<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=color-scheme content="light dark"><title>اختبار درس طباعة الأشكال للدكتورة سمية C++</title>
 <link rel=preconnect href="https://fonts.googleapis.com"><link rel=preconnect href="https://fonts.gstatic.com" crossorigin>
 <link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Fira+Code:wght@400;500&family=Vazirmatn:wght@400;500;700&display=swap">
 <style>
@@ -56,6 +56,7 @@ const H=String.raw`<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-
 @media(prefers-color-scheme:dark){:root{--paper:#101214;--sheet:#1a1d20;--ink:#e9eae8;--rule:#8a9098;--faint:#33383d;--pencil:#a6adb6;--red:#ff7b73;--blue:#8fb8ee;--hl:#24282c;color-scheme:dark}}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.6 Vazirmatn,"Segoe UI",Tahoma,system-ui,sans-serif;padding-bottom:max(40px,env(safe-area-inset-bottom))}
+.ttl{margin:0;text-wrap:balance;background:var(--paper);color:var(--ink);text-align:center;font:700 clamp(15px,4.4vw,20px)/1.45 Vazirmatn,"Segoe UI",system-ui,sans-serif;padding:max(11px,env(safe-area-inset-top)) 16px 11px}
 .hd{position:sticky;top:0;z-index:5;background:var(--paper)}
 .strip{background:var(--ink);color:var(--paper);text-align:center;font:500 12.5px/1 Vazirmatn,system-ui,sans-serif;padding:max(9px,env(safe-area-inset-top)) 12px 9px;direction:ltr;letter-spacing:.02em}
 .tally{display:flex;align-items:center;max-width:820px;margin:0 auto;padding:9px max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
@@ -69,7 +70,7 @@ main{max-width:820px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-rig
 .stamp{display:inline-block;border:1.5px solid var(--red);color:var(--red);font:700 12px/1 Vazirmatn,system-ui,sans-serif;padding:4px 9px;border-radius:3px;transform:rotate(-2deg);margin-bottom:10px}
 #t span{display:block;font-weight:700;font-size:17px}#t small{display:block;color:var(--pencil);font-size:13px;direction:ltr;text-align:left}
 #t:focus{outline:0}
-pre{margin:0;font:400 14.5px/1.65 "Fira Code",ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left}
+pre{margin:0;font:400 14.5px/1.65 "Fira Code",ui-monospace,Menlo,Consolas,monospace;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left}
 #c{margin-top:12px;padding:4px 0 4px 14px;border-left:3px solid var(--faint);overflow-x:auto}
 .k{font-weight:500}.s{color:var(--blue)}
 #o{grid-column:1/-1;direction:ltr;display:grid;grid-template-columns:1fr;gap:1.5px;background:var(--rule);border-top:1.5px solid var(--rule)}
@@ -94,6 +95,7 @@ pre{margin:0;font:400 14.5px/1.65 "Fira Code",ui-monospace,Menlo,Consolas,monosp
 :focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
+<h1 class=ttl>اختبار درس طباعة الأشكال للدكتورة سمية <span dir=ltr>C++</span></h1>
 <div class=hd><div class=strip>Developed by Maggd Alosimi</div><div class=tally><span id=n></span><span id=sc></span></div><div class=rail><div id=f></div></div></div>
 <main><div class=sheet id=q><div class=no id=no></div><div class=q><div id=lv></div><div id=t tabindex=-1></div><pre id=c></pre></div><div id=o></div><div id=e hidden></div><div class=foot id=ft hidden><button class=btn id=nx></button></div></div>
 <div class="sheet end" id=end hidden></div></main>
