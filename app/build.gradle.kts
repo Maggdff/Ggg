@@ -37,7 +37,13 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
 
-    packaging { jniLibs { useLegacyPackaging = true } } // Hikvision يحمّل مكوّناته من مجلد المكتبات
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true // Hikvision يحمّل مكوّناته من مجلد المكتبات
+            // libVLC و OpenCV كلاهما يشحن libc++_shared.so نفسها؛ نأخذ نسخة واحدة بدل فشل mergeDebugNativeLibs
+            pickFirsts += listOf("**/libc++_shared.so")
+        }
+    }
 
     sourceSets {
         getByName("main") {

@@ -184,7 +184,7 @@ class RtspSource(
         if (!grabbing.compareAndSet(false, true)) return    // المعالجة السابقة لم تنته: أسقط الإطار
         val b = bmp ?: Bitmap.createBitmap(nativeW, nativeH, Bitmap.Config.ARGB_8888).also { bmp = it }
         val tSec = SystemClock.elapsedRealtimeNanos() / 1e9
-        if (t.getBitmap(b) == null) { grabbing.set(false); return }
+        t.getBitmap(b)
         worker.execute {
             try {
                 val rgba = Mat(); val gray = Mat()
