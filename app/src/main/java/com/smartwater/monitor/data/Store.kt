@@ -16,7 +16,6 @@ data class AppConfig(
     val pass: String = "",
     val channel: Int = 4,
     val streamType: Int = 0,        // 0 رئيسي (دقة عالية، يلزم لقراءة عقرب صغير)، 1 فرعي
-    val realChannel: Int = -1,      // تجاوز اختياري لرقم القناة الفعلي في SDK
     val meters: List<MeterConfig> = listOf(
         // قيم افتراضية مأخوذة من فيديو الاختبار 2560×1944؛ عايرها لكاميرتك من شاشة المعايرة.
         MeterConfig("العداد 1", 505.0, 1232.0, 60.0),
@@ -63,7 +62,7 @@ class Store(private val ctx: Context) {
             AppConfig(
                 j.optString("ip", d.ip), j.optString("user", d.user), j.optString("pass", d.pass),
                 j.optInt("channel", d.channel), j.optInt("streamType", d.streamType),
-                j.optInt("realChannel", d.realChannel), meters, swing,
+                meters, swing,
                 j.optInt("rtspPort", d.rtspPort), j.optString("rtspUrl", d.rtspUrl),
             )
         } catch (e: Exception) { AppConfig() }
@@ -72,7 +71,7 @@ class Store(private val ctx: Context) {
     fun save(c: AppConfig) {
         val j = JSONObject()
         j.put("ip", c.ip).put("user", c.user).put("pass", c.pass)
-        j.put("channel", c.channel).put("streamType", c.streamType).put("realChannel", c.realChannel)
+        j.put("channel", c.channel).put("streamType", c.streamType)
         j.put("rtspPort", c.rtspPort).put("rtspUrl", c.rtspUrl)
         val ms = JSONArray()
         c.meters.forEach { ms.put(JSONObject().put("name", it.name).put("cx", it.cx).put("cy", it.cy).put("r", it.radius)) }

@@ -1,3 +1,2 @@
--keep class com.hikvision.** { *; }
--keep class org.MediaPlayer.** { *; }
+-keep class org.videolan.** { *; }
 -keep class org.opencv.** { *; }

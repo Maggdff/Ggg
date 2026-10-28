@@ -43,6 +43,8 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         fun onState(s: UiState)
         fun onSwing(text: String)
         fun onStatus(msg: String)
+        /** التُقطت لقطة المعايرة تلقائيًا من بث RTSP. */
+        fun onStillCaptured() {}
     }
 
     val store = Store(ctx)
@@ -62,6 +64,7 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
     @Volatile var running = false
         private set
     @Volatile private var connected = false
+    @Volatile private var captureNext = false     // التقط أول إطار RTSP كلقطة معايرة
     private var lastT = 0.0
     private var lastUi = 0L
     private var fpsCount = 0
@@ -82,12 +85,14 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         return Pipeline(cfg.meters, cfg.swing, refs) { onSwingResult(it) }
     }
 
-    fun startCamera(host: FrameLayout) {
+    /** [record]=false: بث RTSP للمعايرة فقط (لا تُكتب الزفات في السجل). */
+    fun startCamera(host: FrameLayout, record: Boolean = true) {
         stop()
         pipeline = newPipeline()
-        persist = true; running = true; connected = false
+        persist = record; running = true; connected = false
         val c = cfg
-        status("جارٍ الاتصال بالكاميرا عبر RTSP (${c.ip}:${c.rtspPort} ، القناة ${c.channel}) ...")
+        status((if (record) "جارٍ الاتصال بالكاميرا عبر RTSP" else "جارٍ الاتصال بالكاميرا عبر RTSP للمعايرة (بلا تسجيل)") +
+            " (${c.ip}:${c.rtspPort} ، القناة ${c.channel}) ...")
         source = RtspSource(ctx, c.buildRtspUrl(), true, host).also { it.start(this) }
     }
 
@@ -151,6 +156,7 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         if (now - lastUi > 200) {
             lastUi = now
             synchronized(lock) { latestMat?.release(); latestMat = full }
+            if (captureNext) { captureNext = false; setStillFromLatest(); ui.post { uiListener?.onStillCaptured() } }
             publish(w, h)
         } else full.release()
         fpsCount++
@@ -196,6 +202,14 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
     fun setStillFromLatest(): Boolean = synchronized(lock) {
         val l = latestMat ?: return false
         stillMat?.release(); stillMat = l.clone(); true
+    }
+
+    /** يلتقط لقطة المعايرة من بث RTSP: فورًا إن كان البث يعمل، وإلا يتصل بالكاميرا ويلتقط أول إطار. */
+    fun captureStillFromRtsp(host: FrameLayout): Boolean {
+        if (running && setStillFromLatest()) return true
+        captureNext = true
+        if (!running) startCamera(host, record = false)
+        return false
     }
 
     /** معاينة آخر إطار حي بتصغير يناسب العرض. */

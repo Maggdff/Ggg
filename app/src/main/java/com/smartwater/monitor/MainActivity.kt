@@ -178,6 +178,15 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
         engine.startVideo(u)
     }
 
+    /** المعايرة عبر RTSP: إن لم يكن البث يعمل يتصل بالكاميرا (بلا تسجيل) ويلتقط أول إطار تلقائيًا. */
+    private fun captureFromRtsp() {
+        engine.store.save(readConfigFields()); engine.cfg = engine.store.load()
+        rtspHost.visibility = View.VISIBLE
+        if (engine.captureStillFromRtsp(rtspHost)) refreshCal() else toast("جارٍ الاتصال بالكاميرا لالتقاط لقطة المعايرة ...")
+    }
+
+    override fun onStillCaptured() { refreshCal(); toast("تم التقاط لقطة المعايرة من بث RTSP") }
+
     private fun stopMonitoring() { engine.stop(); MonitorService.stop(this); rtspHost.visibility = View.GONE }
 
     override fun onStatus(msg: String) { tvStatus.text = msg }
@@ -220,9 +229,7 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
         c.addView(text("1) التقط لقطة من البث الحي أو اختر فيديو.  2) اختر العدّاد، ثم المس منتصف محور العقرب الكبير السفلي، ثم حافة القرص الصغير الذي يدور فيه." +
             "  3) احفظ.  الدائرتان الصفراوان تحددان حلقة البحث عن العقرب، ويجب أن تقعا فوق جسم العقرب لا فوق أرقام القرص."))
         c.addView(row(
-            btn("التقاط من البث") {
-                if (engine.setStillFromLatest()) refreshCal() else toast("لا يوجد بث حاليًا")
-            },
+            btn("اتصال RTSP والتقاط") { captureFromRtsp() },
             btn("اختيار فيديو") { pickVideo.launch(arrayOf("video/*")) },
         ))
         seek = SeekBar(this).apply {
