@@ -27,20 +27,32 @@ object Roi {
     }
 
     fun extract(full: Mat, m: MeterConfig): GrayFrame {
-        // يغطي حلقة الدرجات (1.02R) + هامش لإزاحة الاهتزاز
-        val half = ceil(1.1 * m.radius).toInt() + 30
-        val x0 = max(0, (m.cx - half).roundToInt())
-        val y0 = max(0, (m.cy - half).roundToInt())
-        val x1 = min(full.cols(), (m.cx + half).roundToInt())
-        val y1 = min(full.rows(), (m.cy + half).roundToInt())
+        // لا تقص إطارًا فارغًا أو منطقة خارج حدود الصورة؛ قد يحدث ذلك
+        // عند اختلاف دقة لقطة الكاميرا عن دقة المعايرة المحفوظة.
+        if (full.empty() || full.cols() <= 0 || full.rows() <= 0) {
+            return GrayFrame(1, 1, byteArrayOf(0), m.cx.roundToInt(), m.cy.roundToInt())
+        }
+        val half = (ceil(1.1 * m.radius).toInt() + 30).coerceAtLeast(1)
+        val x0 = (m.cx - half).roundToInt().coerceIn(0, full.cols())
+        val y0 = (m.cy - half).roundToInt().coerceIn(0, full.rows())
+        val x1 = (m.cx + half).roundToInt().coerceIn(0, full.cols())
+        val y1 = (m.cy + half).roundToInt().coerceIn(0, full.rows())
+        if (x1 <= x0 || y1 <= y0) {
+            return GrayFrame(1, 1, byteArrayOf(0), m.cx.roundToInt(), m.cy.roundToInt())
+        }
         val roi = Mat(full, Rect(x0, y0, x1 - x0, y1 - y0))
         val blur = Mat()
-        Imgproc.GaussianBlur(roi, blur, Size(0.0, 0.0), 1.2)
-        val w = blur.cols(); val h = blur.rows()
-        val bytes = ByteArray(w * h)
-        blur.get(0, 0, bytes)
-        roi.release(); blur.release()
-        return GrayFrame(w, h, bytes, x0, y0)
+        try {
+            Imgproc.GaussianBlur(roi, blur, Size(0.0, 0.0), 1.2)
+            val w = blur.cols(); val h = blur.rows()
+            if (w <= 0 || h <= 0) return GrayFrame(1, 1, byteArrayOf(0), x0, y0)
+            val bytes = ByteArray(w * h)
+            blur.get(0, 0, bytes)
+            return GrayFrame(w, h, bytes, x0, y0)
+        } finally {
+            roi.release()
+            blur.release()
+        }
     }
 }
 
@@ -58,6 +70,7 @@ class Pipeline(
     val invalid = IntArray(meters.size)
 
     fun process(full: Mat, t: Double) {
+        if (full.empty() || full.cols() <= 0 || full.rows() <= 0) return
         val s = meters.indices.map { trackers[it].update(Roi.extract(full, meters[it]), t) }
         for (i in s.indices) if (!s[i].valid) invalid[i]++
         samples = s

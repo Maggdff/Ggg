@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.SystemClock
-import android.util.Base64
 import android.view.SurfaceHolder
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -41,7 +40,6 @@ private class IsapiSnapshotSource(
     private var worker: Thread? = null
     private var lastStatus = ""
     private var consecutiveErrors = 0
-    private var disconnectedNotified = false
 
     override fun start(listener: FrameSource.Listener) {
         if (running) return
@@ -71,23 +69,15 @@ private class IsapiSnapshotSource(
                         listener.onFrame(gray, w, h, SystemClock.elapsedRealtimeNanos() / 1e9)
                         lastFrameAt = SystemClock.elapsedRealtime()
                         consecutiveErrors = 0
-                        disconnectedNotified = false
                         status(listener, "متصل عبر HTTP/ISAPI — القناة $ch — لقطات متتابعة")
                     } catch (e: Exception) {
                         consecutiveErrors++
-                        val detail = e.message ?: e.javaClass.simpleName
-                        val shouldShowError = consecutiveErrors == 1 || consecutiveErrors % 5 == 0
+                        if (consecutiveErrors == 1 || consecutiveErrors % 5 == 0) {
+                            val detail = e.message ?: e.javaClass.simpleName
+                            status(listener, "فشل جلب لقطة ISAPI ($consecutiveErrors): $detail. تحقق من HTTP/ISAPI والمنفذ والصلاحيات.")
+                        }
                         if (lastFrameAt == 0L || SystemClock.elapsedRealtime() - lastFrameAt > 3000) {
-                            if (!disconnectedNotified) {
-                                disconnectedNotified = true
-                                listener.onDisconnected()
-                            }
-                            // أظهر السبب الحقيقي بعد رسالة الانقطاع العامة حتى لا تختفي تفاصيل الخطأ.
-                            if (shouldShowError) {
-                                status(listener, "فشل جلب لقطة ISAPI ($consecutiveErrors): $detail. تحقق من عنوان الجهاز والمنفذ 80 وصلاحيات HTTP/ISAPI.")
-                            }
-                        } else if (shouldShowError) {
-                            status(listener, "تعثر مؤقت في جلب لقطة ISAPI ($consecutiveErrors): $detail")
+                            listener.onDisconnected()
                         }
                         Thread.sleep(if (consecutiveErrors < 3) 700L else 1500L)
                     }
@@ -129,22 +119,11 @@ private class IsapiSnapshotSource(
         val errorText = try { conn.errorStream?.bufferedReader()?.use { it.readText().take(180) } ?: "" } catch (_: Exception) { "" }
         conn.disconnect()
         if (code == 401 && !challenge.isNullOrBlank()) {
-            // Hikvision firmware can advertise Basic, Digest, or both.
-            val auth = if (hasDigestChallenge(challenge)) {
-                digestAuthorization(challenge.substringAfter("Digest", ""), endpoint)
-            } else if (challenge.contains("Basic", ignoreCase = true)) {
-                val token = Base64.encodeToString(
-                    "$username:$password".toByteArray(Charsets.ISO_8859_1),
-                    Base64.NO_WRAP
-                )
-                "Basic $token"
-            } else {
-                throw IllegalStateException("نوع المصادقة غير مدعوم: ${challenge.take(180)}")
-            }
+            val auth = digestAuthorization(challenge, endpoint)
             conn = URL(endpoint).openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
-            conn.connectTimeout = 4000
-            conn.readTimeout = 4000
+            conn.connectTimeout = 2500
+            conn.readTimeout = 2500
             conn.setRequestProperty("Accept", "image/jpeg,*/*")
             conn.setRequestProperty("Authorization", auth)
             conn.connect()
@@ -155,22 +134,19 @@ private class IsapiSnapshotSource(
                 if (data.isEmpty()) throw IllegalStateException("الصورة فارغة")
                 return data
             }
-            val retryChallenge = conn.getHeaderField("WWW-Authenticate") ?: ""
             val retryText = try { conn.errorStream?.bufferedReader()?.use { it.readText().take(180) } ?: "" } catch (_: Exception) { "" }
             conn.disconnect()
-            throw IllegalStateException("HTTP $retryCode بعد المصادقة ${if (auth.startsWith("Basic ")) "Basic" else "Digest"} — تحقق من الصلاحيات أو القناة. ${retryChallenge.take(100)} $retryText")
+            throw IllegalStateException("HTTP $retryCode — تحقق من المستخدم وكلمة المرور وصلاحية ISAPI. $retryText")
         }
         throw IllegalStateException("HTTP $code ${if (errorText.isNotBlank()) "— $errorText" else ""}")
     }
 
-    private fun hasDigestChallenge(challenge: String): Boolean {
-        return Regex("""(?i)Digest\\s+[^,]*realm\\s*=\\s*["'][^"']+["']""").containsMatchIn(challenge) &&
-            Regex("""(?i)nonce\\s*=\\s*["'][^"']+["']""").containsMatchIn(challenge)
-    }
-
     private fun digestAuthorization(challenge: String, endpoint: String): String {
+        if (!challenge.startsWith("Digest", true)) {
+            throw IllegalStateException("الجهاز لا يعرض مصادقة Digest: ${challenge.take(100)}")
+        }
         val params = Regex("""([A-Za-z0-9_-]+)\s*=\s*(?:"([^"]*)"|([^,\s]+))""")
-            .findAll(challenge)
+            .findAll(challenge.substringAfter(' '))
             .associate { it.groupValues[1].lowercase(Locale.US) to (it.groupValues[2].ifEmpty { it.groupValues[3] }) }
         val realm = params["realm"] ?: throw IllegalStateException("تحدي Digest بلا realm")
         val nonce = params["nonce"] ?: throw IllegalStateException("تحدي Digest بلا nonce")
