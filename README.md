@@ -14,7 +14,12 @@
 - GitHub Actions (`.github/workflows/build-apk.yml`): عند كل push يُشغَّل اختبار الفيديو ثم يُبنى APK ويُرفع كـ artifact.
 - محليًا: `./gradlew assembleDebug` (JDK 17 + Android SDK 34).
 
-## Hikvision SDK (لازم لتفعيل الاتصال بالكاميرا)
+## الاتصال بالكاميرا (RTSP عبر libVLC — بلا حاجة لأي SDK)
+يتصل التطبيق بـ `rtsp://المستخدم:كلمة_السر@IP:554/Streaming/Channels/<القناة>0<1|2>` (القناة 4 رئيسي = `401`، فرعي = `402`)،
+وهو نفس مشغّل libVLC الذي اشتغل في RtspPersonTracker (يتحمّل H.265 بلا fmtp). تُلتقط الإطارات بالدقة الأصلية ~8 إطار/ث.
+إن لم يعمل المسار الافتراضي ضع العنوان الكامل في حقل «عنوان RTSP كامل». الهاتف يجب أن يكون على نفس شبكة الكاميرا.
+
+## Hikvision SDK (اختياري، لم يعد مستخدمًا في الاتصال)
 الـ SDK مرخّص من Hikvision ولا يُوزَّع مع المشروع. حمّل «Android SDK» (HCNetSDK + PlayCtrl) من بوابة Hikvision للمطورين، ثم:
 1. ضع `HCNetSDK.jar` و`PlayerSDK.jar` في `app/libs/` وملفات `.so` (مع مجلد `HCNetSDKCom`) في `app/src/main/jniLibs/<abi>/`.
 2. أو لـ CI: ارفع zip (بالهيكل `libs/*.jar` و`jniLibs/<abi>/*`) إلى رابط خاص وضعه في سر المستودع `HIKVISION_SDK_URL`.

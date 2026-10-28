@@ -48,6 +48,8 @@ android {
 
 dependencies {
     implementation("org.opencv:opencv:4.9.0")
+    // libVLC: مشغّل RTSP متسامح مع Hikvision (H.265 بلا fmtp) — نفس ما اشتغل في RtspPersonTracker
+    implementation("org.videolan.android:libvlc-all:3.6.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.core:core-ktx:1.13.1")
     if (hasHik) implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

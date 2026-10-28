@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
-import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -23,7 +22,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.smartwater.monitor.camera.HikSourceFactory
 import com.smartwater.monitor.camera.VideoFileSource
 import com.smartwater.monitor.core.MeterConfig
 import com.smartwater.monitor.core.SwingParams
@@ -39,7 +37,9 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
     private lateinit var engine: MonitorEngine
     private lateinit var content: FrameLayout
     private lateinit var tabViews: List<View>
-    private lateinit var hikSurface: SurfaceView
+    private lateinit var rtspHost: FrameLayout
+    private lateinit var etPort: EditText
+    private lateinit var etRtsp: EditText
 
     // --- المراقبة
     private lateinit var tvStatus: TextView
@@ -100,8 +100,9 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         content = FrameLayout(this)
         root.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
-        hikSurface = SurfaceView(this)
-        root.addView(hikSurface, LinearLayout.LayoutParams(1, 1))   // سطح مطلوب لـ PlayM4 (1×1 بكسل)
+        // معاينة البث (تبقى ظاهرة أثناء التشغيل لأن الإطارات تُلتقط منها)؛ مخفية عند الإيقاف
+        rtspHost = FrameLayout(this).apply { setBackgroundColor(0xFF000000.toInt()); clipChildren = true; visibility = View.GONE }
+        root.addView(rtspHost, LinearLayout.LayoutParams(-1, (resources.displayMetrics.density * 150).toInt()))
 
         val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val names = listOf("المراقبة", "المعايرة والتحقق", "السجل")
@@ -118,7 +119,6 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             askNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
-        if (!HikSourceFactory.AVAILABLE) tvStatus.text = "Hikvision SDK غير مضمّن في هذا البناء — الاتصال بالكاميرا غير متاح (فيديو الاختبار متاح)"
     }
 
     override fun onStart() { super.onStart(); engine.uiListener = this; refreshLog() }
@@ -136,13 +136,15 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
         val cfg = engine.cfg
         tvStatus = text("غير متصل")
         c.addView(tvStatus)
-        c.addView(text("المنفذ: 8000 (Hikvision SDK)"))
+        c.addView(text("الاتصال عبر RTSP (المنفذ 554). القناة 4 رئيسي = المسار /Streaming/Channels/401"))
         etIp = edit("IP الكاميرا/الجهاز", cfg.ip)
         etUser = edit("اسم المستخدم", cfg.user)
         etPass = edit("كلمة المرور", cfg.pass).apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD }
         etChannel = edit("رقم القناة", cfg.channel.toString()).apply { inputType = InputType.TYPE_CLASS_NUMBER }
         etStream = edit("نوع البث (0 رئيسي ، 1 فرعي)", cfg.streamType.toString()).apply { inputType = InputType.TYPE_CLASS_NUMBER }
-        listOf(etIp, etUser, etPass, etChannel, etStream).forEach { c.addView(it) }
+        etPort = edit("منفذ RTSP", cfg.rtspPort.toString()).apply { inputType = InputType.TYPE_CLASS_NUMBER }
+        etRtsp = edit("عنوان RTSP كامل (اختياري، يتجاوز الحقول أعلاه)", cfg.rtspUrl)
+        listOf(etIp, etUser, etPass, etChannel, etStream, etPort, etRtsp).forEach { c.addView(it) }
         c.addView(row(
             btn("اتصال بالكاميرا") { connectCamera() },
             btn("فيديو اختبار") { playTestVideo() },
@@ -159,21 +161,24 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
     private fun readConfigFields() = engine.cfg.copy(
         ip = etIp.text.toString().trim(), user = etUser.text.toString().trim(), pass = etPass.text.toString(),
         channel = etChannel.text.toString().toIntOrNull() ?: 4, streamType = etStream.text.toString().toIntOrNull() ?: 0,
+        rtspPort = etPort.text.toString().toIntOrNull() ?: 554, rtspUrl = etRtsp.text.toString().trim(),
     )
 
     private fun connectCamera() {
         engine.store.save(readConfigFields()); engine.cfg = engine.store.load()
         MonitorService.start(this)
-        engine.startCamera(hikSurface.holder)
+        rtspHost.visibility = View.VISIBLE
+        engine.startCamera(rtspHost)
     }
 
     private fun playTestVideo() {
         val u = videoUri
         if (u == null) { pickVideo.launch(arrayOf("video/*")); toast("اختر الفيديو ثم اضغط الزر مجددًا"); return }
+        rtspHost.visibility = View.GONE
         engine.startVideo(u)
     }
 
-    private fun stopMonitoring() { engine.stop(); MonitorService.stop(this) }
+    private fun stopMonitoring() { engine.stop(); MonitorService.stop(this); rtspHost.visibility = View.GONE }
 
     override fun onStatus(msg: String) { tvStatus.text = msg }
 

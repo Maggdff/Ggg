@@ -6,9 +6,9 @@ import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.view.SurfaceHolder
 import com.smartwater.monitor.camera.FrameSource
-import com.smartwater.monitor.camera.HikSourceFactory
+import com.smartwater.monitor.camera.RtspSource
+import android.widget.FrameLayout
 import com.smartwater.monitor.camera.VideoFileSource
 import com.smartwater.monitor.core.GrayFrame
 import com.smartwater.monitor.core.SwingResult
@@ -82,14 +82,13 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         return Pipeline(cfg.meters, cfg.swing, refs) { onSwingResult(it) }
     }
 
-    fun startCamera(holder: SurfaceHolder?) {
+    fun startCamera(host: FrameLayout) {
         stop()
         pipeline = newPipeline()
         persist = true; running = true; connected = false
         val c = cfg
-        status("جارٍ الاتصال بـ ${c.ip}:8000 ، القناة ${c.channel} ...")
-        source = HikSourceFactory.create(ctx, c.ip, c.user, c.pass, c.channel, c.streamType, c.realChannel, holder)
-            .also { it.start(this) }
+        status("جارٍ الاتصال بالكاميرا عبر RTSP (${c.ip}:${c.rtspPort} ، القناة ${c.channel}) ...")
+        source = RtspSource(ctx, c.buildRtspUrl(), true, host).also { it.start(this) }
     }
 
     /** فيديو محلي كمصدر: لا يُكتب في السجل الحقيقي (للتجربة فقط). */
