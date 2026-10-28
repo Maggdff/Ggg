@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.SystemClock
+import android.util.Base64
 import android.view.SurfaceHolder
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -128,11 +129,22 @@ private class IsapiSnapshotSource(
         val errorText = try { conn.errorStream?.bufferedReader()?.use { it.readText().take(180) } ?: "" } catch (_: Exception) { "" }
         conn.disconnect()
         if (code == 401 && !challenge.isNullOrBlank()) {
-            val auth = digestAuthorization(challenge, endpoint)
+            // Hikvision firmware can advertise Basic, Digest, or both.
+            val auth = if (hasDigestChallenge(challenge)) {
+                digestAuthorization(challenge.substringAfter("Digest", ""), endpoint)
+            } else if (challenge.contains("Basic", ignoreCase = true)) {
+                val token = Base64.encodeToString(
+                    "$username:$password".toByteArray(Charsets.ISO_8859_1),
+                    Base64.NO_WRAP
+                )
+                "Basic $token"
+            } else {
+                throw IllegalStateException("نوع المصادقة غير مدعوم: ${challenge.take(180)}")
+            }
             conn = URL(endpoint).openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
-            conn.connectTimeout = 2500
-            conn.readTimeout = 2500
+            conn.connectTimeout = 4000
+            conn.readTimeout = 4000
             conn.setRequestProperty("Accept", "image/jpeg,*/*")
             conn.setRequestProperty("Authorization", auth)
             conn.connect()
@@ -143,19 +155,22 @@ private class IsapiSnapshotSource(
                 if (data.isEmpty()) throw IllegalStateException("الصورة فارغة")
                 return data
             }
+            val retryChallenge = conn.getHeaderField("WWW-Authenticate") ?: ""
             val retryText = try { conn.errorStream?.bufferedReader()?.use { it.readText().take(180) } ?: "" } catch (_: Exception) { "" }
             conn.disconnect()
-            throw IllegalStateException("HTTP $retryCode — تحقق من المستخدم وكلمة المرور وصلاحية ISAPI. $retryText")
+            throw IllegalStateException("HTTP $retryCode بعد المصادقة ${if (auth.startsWith("Basic ")) "Basic" else "Digest"} — تحقق من الصلاحيات أو القناة. ${retryChallenge.take(100)} $retryText")
         }
         throw IllegalStateException("HTTP $code ${if (errorText.isNotBlank()) "— $errorText" else ""}")
     }
 
+    private fun hasDigestChallenge(challenge: String): Boolean {
+        return Regex("""(?i)Digest\\s+[^,]*realm\\s*=\\s*["'][^"']+["']""").containsMatchIn(challenge) &&
+            Regex("""(?i)nonce\\s*=\\s*["'][^"']+["']""").containsMatchIn(challenge)
+    }
+
     private fun digestAuthorization(challenge: String, endpoint: String): String {
-        if (!challenge.startsWith("Digest", true)) {
-            throw IllegalStateException("الجهاز لا يعرض مصادقة Digest: ${challenge.take(100)}")
-        }
         val params = Regex("""([A-Za-z0-9_-]+)\s*=\s*(?:"([^"]*)"|([^,\s]+))""")
-            .findAll(challenge.substringAfter(' '))
+            .findAll(challenge)
             .associate { it.groupValues[1].lowercase(Locale.US) to (it.groupValues[2].ifEmpty { it.groupValues[3] }) }
         val realm = params["realm"] ?: throw IllegalStateException("تحدي Digest بلا realm")
         val nonce = params["nonce"] ?: throw IllegalStateException("تحدي Digest بلا nonce")
