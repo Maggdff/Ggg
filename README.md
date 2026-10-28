@@ -7,8 +7,8 @@
 - `app/src/main/java/.../core` — **نواة القياس** (Kotlin نقي بلا أندرويد، مُختبَرة على JVM):
   `MeterTracker` (تتبع العقرب + فك اللف + تعويض الاهتزاز)، `SwingEngine` (آلة حالات الزفات).
 - `engine/` — قص ROI وتنعيم بـ OpenCV، وربط المصدر بالنواة والسجل.
-- `camera/` — `RtspSource` (بث الكاميرا عبر RTSP/libVLC) و`VideoFileSource` (فيديو للاختبار).
-- `verify/` — اختبار النواة على `testdata/meter.mp4` (`verify/run.sh`).
+- `camera/` — `RtspSource` (بث الكاميرا عبر RTSP/libVLC).
+- `verify/` — اختبار النواة على `testdata/meter.mp4` (`verify/run.sh`)؛ للتطوير فقط ولا يدخل في APK.
 
 ## البناء
 - GitHub Actions (`.github/workflows/build-apk.yml`): عند كل push يُشغَّل اختبار الفيديو ثم يُبنى APK ويُرفع كـ artifact.

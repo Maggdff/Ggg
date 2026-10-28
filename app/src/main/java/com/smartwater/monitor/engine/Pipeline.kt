@@ -33,6 +33,7 @@ object Roi {
         val y0 = max(0, (m.cy - half).roundToInt())
         val x1 = min(full.cols(), (m.cx + half).roundToInt())
         val y1 = min(full.rows(), (m.cy + half).roundToInt())
+        require(x1 - x0 >= 8 && y1 - y0 >= 8) { "${m.name} خارج حدود الإطار ${full.cols()}×${full.rows()}" }
         val roi = Mat(full, Rect(x0, y0, x1 - x0, y1 - y0))
         val blur = Mat()
         Imgproc.GaussianBlur(roi, blur, Size(0.0, 0.0), 1.2)

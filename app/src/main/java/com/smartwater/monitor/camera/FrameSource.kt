@@ -8,7 +8,6 @@ interface FrameSource {
         fun onStatus(message: String)
         /** انقطع البث. يُعامَل كفجوة وليس كتوقف عدّاد. */
         fun onDisconnected()
-        fun onFinished() {}
     }
 
     fun start(listener: Listener)

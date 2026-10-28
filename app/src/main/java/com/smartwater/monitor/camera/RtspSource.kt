@@ -212,6 +212,7 @@ class RtspSource(
             try {
                 val d = m.stats?.displayedPictures ?: lastDisplayed
                 if (d > lastDisplayed) { lastDisplayed = d; lastProgressMs = now
+                    if (!playing) { playing = true; attempt = 0; listener?.onStatus("البث يعمل — جارٍ التقاط الإطارات") }
                     if (!grabbingStarted) { grabbingStarted = true; main.post(grabber) } }
             } finally { m.release() }
         }

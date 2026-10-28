@@ -13,7 +13,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+        ndk { abiFilters += listOf("arm64-v8a")   // هواتف 64-بت فقط: يحذف نسخ 32-بت فيصغر APK تقريبًا للنصف }
     }
 
     buildTypes {

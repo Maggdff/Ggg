@@ -2,9 +2,7 @@ package com.smartwater.monitor
 
 import android.Manifest
 import android.app.AlertDialog
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
@@ -17,12 +15,10 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.smartwater.monitor.camera.VideoFileSource
 import com.smartwater.monitor.core.MeterConfig
 import com.smartwater.monitor.core.SwingParams
 import com.smartwater.monitor.engine.MonitorEngine
@@ -57,28 +53,16 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
     // --- المعايرة
     private lateinit var calView: FrameView
     private lateinit var tvCal: TextView
-    private lateinit var tvReport: TextView
-    private lateinit var seek: SeekBar
+    private lateinit var tvCalStatus: TextView
     private var draft: MutableList<MeterConfig> = mutableListOf()
     private var selected = 0
     private var tapMode = 0          // 0 محور، 1 حافة القرص
-    private var zoom = true
-    private var videoUri: Uri? = null
-    private var videoDur = 0L
+    private var zoom = false         // تبدأ بعرض الإطار كاملًا ليرى المستخدم العدّادين قبل التكبير
 
     // --- السجل
     private lateinit var logBox: LinearLayout
     private lateinit var tvLogTotal: TextView
 
-    private val pickVideo = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) {}
-            videoUri = uri
-            videoDur = VideoFileSource.durationMs(this, uri)
-            toast("تم اختيار الفيديو (${videoDur / 1000} ث)")
-            loadVideoFrame(0)
-        }
-    }
     private val exportCsv = registerForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) {
             try {
@@ -147,7 +131,6 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
         listOf(etIp, etUser, etPass, etChannel, etStream, etPort, etRtsp).forEach { c.addView(it) }
         c.addView(row(
             btn("اتصال بالكاميرا") { connectCamera() },
-            btn("فيديو اختبار") { playTestVideo() },
             btn("إيقاف") { stopMonitoring() },
         ))
         monView = FrameView(this)
@@ -171,13 +154,6 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
         engine.startCamera(rtspHost)
     }
 
-    private fun playTestVideo() {
-        val u = videoUri
-        if (u == null) { pickVideo.launch(arrayOf("video/*")); toast("اختر الفيديو ثم اضغط الزر مجددًا"); return }
-        rtspHost.visibility = View.GONE
-        engine.startVideo(u)
-    }
-
     /** المعايرة عبر RTSP: إن لم يكن البث يعمل يتصل بالكاميرا (بلا تسجيل) ويلتقط أول إطار تلقائيًا. */
     private fun captureFromRtsp() {
         engine.store.save(readConfigFields()); engine.cfg = engine.store.load()
@@ -189,7 +165,7 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
 
     private fun stopMonitoring() { engine.stop(); MonitorService.stop(this); rtspHost.visibility = View.GONE }
 
-    override fun onStatus(msg: String) { tvStatus.text = msg }
+    override fun onStatus(msg: String) { tvStatus.text = msg; tvCalStatus.text = msg }
 
     override fun onSwing(text: String) {
         tvSwing.text = text
@@ -226,21 +202,14 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
     // ================= المعايرة والتحقق =================
     private fun buildCalibration(): View {
         val c = col()
-        c.addView(text("1) التقط لقطة من البث الحي أو اختر فيديو.  2) اختر العدّاد، ثم المس منتصف محور العقرب الكبير السفلي، ثم حافة القرص الصغير الذي يدور فيه." +
-            "  3) احفظ.  الدائرتان الصفراوان تحددان حلقة البحث عن العقرب، ويجب أن تقعا فوق جسم العقرب لا فوق أرقام القرص."))
+        c.addView(text("1) اضغط «اتصال RTSP والتقاط».  2) اختر العدّاد، ثم المس منتصف محور العقرب الكبير السفلي، ثم حافة القرص الصغير الذي يدور فيه.  3) احفظ.  " +
+            "الدائرتان الصفراوان تحددان حلقة البحث عن العقرب، ويجب أن تقعا فوق جسم العقرب لا فوق أرقام القرص."))
+        tvCalStatus = text("غير متصل")
+        c.addView(tvCalStatus)
         c.addView(row(
             btn("اتصال RTSP والتقاط") { captureFromRtsp() },
-            btn("اختيار فيديو") { pickVideo.launch(arrayOf("video/*")) },
+            btn("إيقاف") { stopMonitoring() },
         ))
-        seek = SeekBar(this).apply {
-            max = 1000
-            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {}
-                override fun onStartTrackingTouch(sb: SeekBar?) {}
-                override fun onStopTrackingTouch(sb: SeekBar?) { loadVideoFrame(videoDur * (sb?.progress ?: 0) / 1000) }
-            })
-        }
-        c.addView(seek)
         c.addView(row(
             btn("العداد 1") { selected = 0; refreshCal() },
             btn("العداد 2") { selected = 1; refreshCal() },
@@ -257,14 +226,11 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
         c.addView(calView, LinearLayout.LayoutParams(-1, -2))
         tvCal = text("")
         c.addView(tvCal)
-        c.addView(text("التحقق: شغّل الفيديو/البث وراقب «المجموع». كل دورة كاملة للعقرب يجب أن تزيد المجموع 360° (±3°) = برميل واحد."))
+        c.addView(text("التحقق: راقب «المجموع». كل دورة كاملة للعقرب يجب أن تزيد المجموع 360° (±3°) = برميل واحد."))
         c.addView(row(
             btn("حفظ المعايرة") { saveCalibration() },
             btn("إعدادات الزفات") { swingDialog() },
-            btn("فحص الفيديو") { analyzeVideo() },
         ))
-        tvReport = text("")
-        c.addView(tvReport)
         return scroll(c)
     }
 
@@ -289,33 +255,16 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
             val h = m.radius * 2.4
             listOf(m.cx - h, m.cy - h, m.cx + h, m.cy + h)
         } else listOf(0.0, 0.0, engine.stillWidth.toDouble(), engine.stillHeight.toDouble())
-        val r = engine.stillBitmap(x0, y0, x1, y1, 1400) ?: return
+        val r = engine.stillBitmap(x0, y0, x1, y1, 1400)
+            ?: engine.stillBitmap(0.0, 0.0, engine.stillWidth.toDouble(), engine.stillHeight.toDouble(), 1400) ?: return
         calView.bitmap = r.first
         calView.region = r.second
         calView.requestLayout(); calView.invalidate()
     }
 
-    private fun loadVideoFrame(ms: Long) {
-        val u = videoUri ?: return
-        Thread {
-            val f = VideoFileSource.frameAt(this, u, ms)
-            runOnUiThread {
-                if (f == null) toast("تعذّر قراءة الإطار") else { engine.setStill(f.first, f.second, f.third); refreshCal() }
-            }
-        }.start()
-    }
-
     private fun saveCalibration() {
         val ok = engine.saveCalibration(engine.cfg.copy(meters = draft.toList()))
         toast(if (ok) "حُفظت المعايرة وطُبّقت فورًا (مع مرجع تعويض الاهتزاز)" else "التقط لقطة أولًا")
-    }
-
-    private fun analyzeVideo() {
-        val u = videoUri
-        if (u == null) { toast("اختر فيديو أولًا"); return }
-        if (engine.store.loadReference(0) == null) toast("تنبيه: لم تُحفظ معايرة بعد؛ سيُستخدم أول إطار كمرجع")
-        tvReport.text = "جارٍ التحليل ..."
-        engine.analyzeVideo(u, { p -> runOnUiThread { tvReport.text = "جارٍ التحليل $p%" } }) { tvReport.text = it }
     }
 
     private fun swingDialog() {
