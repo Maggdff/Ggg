@@ -11,27 +11,19 @@ import java.io.DataOutputStream
 import java.io.File
 
 data class AppConfig(
-    val ip: String = "192.168.1.100",
+    val ip: String = "192.168.1.64",
     val user: String = "admin",
     val pass: String = "",
     val channel: Int = 4,
     val streamType: Int = 0,        // 0 رئيسي (دقة عالية، يلزم لقراءة عقرب صغير)، 1 فرعي
+    val realChannel: Int = -1,      // تجاوز اختياري لرقم القناة الفعلي في SDK
     val meters: List<MeterConfig> = listOf(
         // قيم افتراضية مأخوذة من فيديو الاختبار 2560×1944؛ عايرها لكاميرتك من شاشة المعايرة.
         MeterConfig("العداد 1", 505.0, 1232.0, 60.0),
         MeterConfig("العداد 2", 1887.0, 1337.0, 62.0),
     ),
     val swing: SwingParams = SwingParams(),
-    val rtspPort: Int = 554,
-    val rtspUrl: String = "",       // اختياري: عنوان RTSP كامل يتجاوز التركيب التلقائي
-) {
-    /** عنوان RTSP لكاميرا Hikvision: /Streaming/Channels/<القناة><0=رئيسي1/2=فرعي>، مثال القناة 4 رئيسي = 401. */
-    fun buildRtspUrl(): String {
-        if (rtspUrl.isNotBlank()) return rtspUrl.trim()
-        val auth = if (user.isNotEmpty()) android.net.Uri.encode(user) + ":" + android.net.Uri.encode(pass) + "@" else ""
-        return "rtsp://$auth$ip:$rtspPort/Streaming/Channels/${channel}0${streamType + 1}"
-    }
-}
+)
 
 /** إعدادات التطبيق في SharedPreferences (ملاحظة: كلمة المرور تُخزَّن محليًا بلا تشفير). */
 class Store(private val ctx: Context) {
@@ -62,8 +54,7 @@ class Store(private val ctx: Context) {
             AppConfig(
                 j.optString("ip", d.ip), j.optString("user", d.user), j.optString("pass", d.pass),
                 j.optInt("channel", d.channel), j.optInt("streamType", d.streamType),
-                meters, swing,
-                j.optInt("rtspPort", d.rtspPort), j.optString("rtspUrl", d.rtspUrl),
+                j.optInt("realChannel", d.realChannel), meters, swing,
             )
         } catch (e: Exception) { AppConfig() }
     }
@@ -71,8 +62,7 @@ class Store(private val ctx: Context) {
     fun save(c: AppConfig) {
         val j = JSONObject()
         j.put("ip", c.ip).put("user", c.user).put("pass", c.pass)
-        j.put("channel", c.channel).put("streamType", c.streamType)
-        j.put("rtspPort", c.rtspPort).put("rtspUrl", c.rtspUrl)
+        j.put("channel", c.channel).put("streamType", c.streamType).put("realChannel", c.realChannel)
         val ms = JSONArray()
         c.meters.forEach { ms.put(JSONObject().put("name", it.name).put("cx", it.cx).put("cy", it.cy).put("r", it.radius)) }
         j.put("meters", ms)

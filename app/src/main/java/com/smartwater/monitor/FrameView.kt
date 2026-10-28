@@ -33,14 +33,14 @@ class FrameView(ctx: Context) : View(ctx) {
         val w = MeasureSpec.getSize(wSpec)
         val rw = (region[2] - region[0]).coerceAtLeast(1f)
         val rh = (region[3] - region[1]).coerceAtLeast(1f)
-        setMeasuredDimension(w, if (bitmap == null) 160 else (w * rh / rw).toInt().coerceIn(200, 1600))
+        setMeasuredDimension(w, (w * rh / rw).toInt().coerceIn(200, 1600))
     }
 
     private fun scale() = width / (region[2] - region[0]).coerceAtLeast(1f)
 
     override fun onDraw(c: Canvas) {
         c.drawColor(Color.BLACK)
-        val b = bitmap ?: run { c.drawText("لا توجد لقطة — اضغط «اتصال RTSP والتقاط»", 20f, 40f, txt); return }
+        val b = bitmap ?: run { c.drawText("لا توجد لقطة", 20f, 40f, txt); return }
         dst.set(0f, 0f, width.toFloat(), height.toFloat())
         c.drawBitmap(b, null, dst, null)
         val s = scale()
@@ -68,7 +68,6 @@ class FrameView(ctx: Context) : View(ctx) {
     override fun onTouchEvent(e: MotionEvent): Boolean {
         if (onTap == null) return false
         if (e.action == MotionEvent.ACTION_DOWN || e.action == MotionEvent.ACTION_MOVE) {
-            parent?.requestDisallowInterceptTouchEvent(true)   // لا تدع ScrollView يبتلع اللمس/السحب
             val s = scale()
             onTap?.invoke(region[0] + e.x / s.toDouble(), region[1] + e.y / s.toDouble())
             return true

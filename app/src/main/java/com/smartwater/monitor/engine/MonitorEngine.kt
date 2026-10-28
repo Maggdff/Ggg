@@ -2,12 +2,14 @@ package com.smartwater.monitor.engine
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.view.SurfaceHolder
 import com.smartwater.monitor.camera.FrameSource
-import com.smartwater.monitor.camera.RtspSource
-import android.widget.FrameLayout
+import com.smartwater.monitor.camera.HikSourceFactory
+import com.smartwater.monitor.camera.VideoFileSource
 import com.smartwater.monitor.core.GrayFrame
 import com.smartwater.monitor.core.SwingResult
 import com.smartwater.monitor.core.SwingType
@@ -21,6 +23,7 @@ import org.opencv.core.Rect
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import java.util.Locale
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 import kotlin.math.min
@@ -40,8 +43,6 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         fun onState(s: UiState)
         fun onSwing(text: String)
         fun onStatus(msg: String)
-        /** التُقطت لقطة المعايرة تلقائيًا من بث RTSP. */
-        fun onStillCaptured() {}
     }
 
     val store = Store(ctx)
@@ -61,7 +62,6 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
     @Volatile var running = false
         private set
     @Volatile private var connected = false
-    @Volatile private var captureNext = false     // التقط أول إطار RTSP كلقطة معايرة
     private var lastT = 0.0
     private var lastUi = 0L
     private var fpsCount = 0
@@ -82,15 +82,23 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         return Pipeline(cfg.meters, cfg.swing, refs) { onSwingResult(it) }
     }
 
-    /** [record]=false: بث RTSP للمعايرة فقط (لا تُكتب الزفات في السجل). */
-    fun startCamera(host: FrameLayout, record: Boolean = true) {
+    fun startCamera(holder: SurfaceHolder?) {
         stop()
         pipeline = newPipeline()
-        persist = record; running = true; connected = false
+        persist = true; running = true; connected = false
         val c = cfg
-        status((if (record) "جارٍ الاتصال بالكاميرا عبر RTSP" else "جارٍ الاتصال بالكاميرا عبر RTSP للمعايرة (بلا تسجيل)") +
-            " (${c.ip}:${c.rtspPort} ، القناة ${c.channel}) ...")
-        source = RtspSource(ctx, c.buildRtspUrl(), true, host).also { it.start(this) }
+        status("جارٍ الاتصال بـ ${c.ip} عبر HTTP/ISAPI، القناة ${c.channel} ...")
+        source = HikSourceFactory.create(ctx, c.ip, c.user, c.pass, c.channel, c.streamType, c.realChannel, holder)
+            .also { it.start(this) }
+    }
+
+    /** فيديو محلي كمصدر: لا يُكتب في السجل الحقيقي (للتجربة فقط). */
+    fun startVideo(uri: Uri) {
+        stop()
+        pipeline = newPipeline()
+        persist = false; running = true; connected = true
+        status("تشغيل فيديو اختبار (لا يُسجَّل في السجل)")
+        source = VideoFileSource(ctx, uri, 100, realtime = true).also { it.start(this) }
     }
 
     fun stop() {
@@ -125,25 +133,27 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         publish()
     }
 
-    private var lastErrMs = 0L
+    override fun onFinished() {
+        wh.post {
+            pipeline?.swing?.flush()
+            running = false
+            status("انتهى الفيديو")
+            publish()
+        }
+    }
 
     private fun process(gray: ByteArray, w: Int, h: Int, t: Double) {
         val p = pipeline ?: return
         connected = true
         val full = Roi.toMat(gray, w, h)
+        p.process(full, t)
+        lastT = t
         val now = System.currentTimeMillis()
-        // اللقطة الحية تُحفظ *قبل* المعالجة: فشل المعالجة (مثلاً عدّاد خارج الإطار قبل المعايرة) لا يمنع المعايرة
-        val keep = captureNext || now - lastUi > 200
-        if (keep) {
+        if (now - lastUi > 200) {
             lastUi = now
             synchronized(lock) { latestMat?.release(); latestMat = full }
-            if (captureNext) { captureNext = false; setStillFromLatest(); ui.post { uiListener?.onStillCaptured() } }
-        }
-        try { p.process(full, t) } catch (e: Exception) {
-            if (now - lastErrMs > 3000) { lastErrMs = now; status("تعذّر القياس: ${e.message} — عايِر العدّادين") }
-        }
-        lastT = t
-        if (keep) publish(w, h) else full.release()
+            publish(w, h)
+        } else full.release()
         fpsCount++
         if (fpsT == 0L) fpsT = now
         if (now - fpsT >= 2000) { fps = fpsCount * 1000.0 / (now - fpsT); fpsCount = 0; fpsT = now }
@@ -189,14 +199,6 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         stillMat?.release(); stillMat = l.clone(); true
     }
 
-    /** يلتقط لقطة المعايرة من بث RTSP: فورًا إن كان البث يعمل، وإلا يتصل بالكاميرا ويلتقط أول إطار. */
-    fun captureStillFromRtsp(host: FrameLayout): Boolean {
-        if (running && setStillFromLatest()) return true
-        captureNext = true
-        if (!running) startCamera(host, record = false)
-        return false
-    }
-
     /** معاينة آخر إطار حي بتصغير يناسب العرض. */
     fun latestBitmap(maxDim: Int): Bitmap? = synchronized(lock) {
         val m = latestMat ?: return null
@@ -207,6 +209,10 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         Utils.matToBitmap(out, bmp)
         out.release()
         bmp
+    }
+
+    fun setStill(gray: ByteArray, w: Int, h: Int) = synchronized(lock) {
+        stillMat?.release(); stillMat = Roi.toMat(gray, w, h)
     }
 
     /** بتصغير يناسب العرض؛ المنطقة بإحداثيات الإطار الكامل. تُرجع البتماب والمنطقة الفعلية المقصوصة. */
@@ -230,18 +236,47 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         val m = stillMat ?: return false
         newCfg.meters.forEachIndexed { i, mc -> store.saveReference(i, Roi.extract(m, mc)) }
         store.save(newCfg); cfg = newCfg
-        reloadPipeline()
         true
     }
 
-    /** يطبّق المعايرة/الإعدادات المحفوظة فورًا على المعالجة الجارية (بدل انتظار إعادة الاتصال). */
-    fun reloadPipeline() {
-        if (!running) return
-        wh.post {
-            val old = pipeline
-            old?.swing?.flush()
-            pipeline = newPipeline()
-        }
+    // ---------- فحص الدقة على فيديو ----------
+    /** يشغّل المعايرة الحالية على كل إطارات فيديو (مستقل عن البث الحي) ويعيد تقريرًا نصيًا. */
+    fun analyzeVideo(uri: Uri, progress: (Int) -> Unit, done: (String) -> Unit) {
+        Thread({
+            val c = store.load()
+            val refs = List(c.meters.size) { store.loadReference(it) }
+            val results = ArrayList<SwingResult>()
+            val p = Pipeline(c.meters, c.swing, refs) { results.add(it) }
+            val dur = VideoFileSource.durationMs(ctx, uri)
+            val latch = CountDownLatch(1)
+            val src = VideoFileSource(ctx, uri, 100, realtime = false)
+            src.start(object : FrameSource.Listener {
+                override fun onFrame(gray: ByteArray, width: Int, height: Int, tSec: Double) {
+                    val full = Roi.toMat(gray, width, height)
+                    p.process(full, tSec); full.release()
+                    if (dur > 0) progress(min(100, (tSec * 1000 * 100 / dur).toInt()))
+                }
+                override fun onStatus(message: String) {}
+                override fun onDisconnected() {}
+                override fun onFinished() { latch.countDown() }
+            })
+            latch.await()
+            p.swing.flush()
+            val sb = StringBuilder()
+            sb.append("إطارات معالجة: ${p.frames}\n")
+            c.meters.forEachIndexed { i, m ->
+                val d = p.trackers[i].totalDegrees
+                sb.append("%s: %.1f° = %.3f برميل (إطارات بلا قياس: %d)\n".format(Locale.US, m.name, d, d / 360.0, p.invalid[i]))
+            }
+            sb.append("زفات مكتشفة: ${results.size}\n")
+            results.forEach { r ->
+                sb.append("• ${if (r.type == SwingType.FULL) "زفة كاملة" else "زفة عداد"}: ")
+                sb.append(r.parts.joinToString(" | ") { "${c.meters[it.meter].name} %.3f".format(Locale.US, it.barrels) })
+                sb.append(" = %.3f برميل".format(Locale.US, r.totalBarrels))
+                if (r.notes.isNotEmpty()) sb.append("  (${r.notes})")
+                sb.append('\n')
+            }
+            ui.post { done(sb.toString()) }
+        }, "analyze-video").start()
     }
-
 }

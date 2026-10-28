@@ -32,6 +32,14 @@ jobs:
         with: { distribution: temurin, java-version: '17' }
       - uses: gradle/actions/setup-gradle@v4
 
+      # اختياري: لإضافة Hikvision SDK أضف سرًّا باسم HIKVISION_SDK_URL يشير إلى zip (انظر README)
+      - name: تركيب Hikvision SDK (إن توفّر الرابط)
+        env:
+          HIKVISION_SDK_URL: ${{ secrets.HIKVISION_SDK_URL }}
+        run: |
+          if [ -n "$HIKVISION_SDK_URL" ]; then bash scripts/install_hik_sdk.sh "$HIKVISION_SDK_URL"; else echo "لا رابط SDK: سيُبنى التطبيق بدون اتصال Hikvision"; fi
+          ls app/libs 2>/dev/null || true
+
       - name: بناء Debug APK
         run: |
           chmod +x gradlew
