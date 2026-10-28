@@ -68,6 +68,7 @@ class FrameView(ctx: Context) : View(ctx) {
     override fun onTouchEvent(e: MotionEvent): Boolean {
         if (onTap == null) return false
         if (e.action == MotionEvent.ACTION_DOWN || e.action == MotionEvent.ACTION_MOVE) {
+            parent?.requestDisallowInterceptTouchEvent(true)   // لا تدع ScrollView يبتلع اللمس/السحب
             val s = scale()
             onTap?.invoke(region[0] + e.x / s.toDouble(), region[1] + e.y / s.toDouble())
             return true

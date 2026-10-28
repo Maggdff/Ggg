@@ -99,10 +99,10 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
 
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         content = FrameLayout(this)
-        root.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
-        // معاينة البث (تبقى ظاهرة أثناء التشغيل لأن الإطارات تُلتقط منها)؛ مخفية عند الإيقاف
+        // معاينة البث في أعلى الشاشة (تبقى ظاهرة أثناء التشغيل لأن الإطارات تُلتقط منها)؛ مخفية عند الإيقاف
         rtspHost = FrameLayout(this).apply { setBackgroundColor(0xFF000000.toInt()); clipChildren = true; visibility = View.GONE }
-        root.addView(rtspHost, LinearLayout.LayoutParams(-1, (resources.displayMetrics.density * 150).toInt()))
+        root.addView(rtspHost, LinearLayout.LayoutParams(-1, (resources.displayMetrics.density * 200).toInt()))
+        root.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
 
         val tabs = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val names = listOf("المراقبة", "المعايرة والتحقق", "السجل")
@@ -207,6 +207,7 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
             (if (s.connected) "متصل" else "انقطع البث — لا يُحتسب توقفًا") + " — %.1f إطار/ث".format(Locale.US, s.fps)
         // شاشة المعايرة: خطوط العقرب الحية فوق اللقطة
         calView.rawAngles = DoubleArray(s.meters.size) { s.meters[it].rawAngle }
+        calView.invalidate()
         tvCal.text = s.meters.joinToString("\n") {
             "%s: زاوية %.1f° | مجموع %.1f° = %.3f برميل | تباين %.3f | إزاحة (%.1f, %.1f)".format(
                 Locale.US, it.name, it.rawAngle, it.totalDeg, it.totalDeg / 360.0, it.contrast, it.shiftX, it.shiftY)
@@ -299,7 +300,7 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
 
     private fun saveCalibration() {
         val ok = engine.saveCalibration(engine.cfg.copy(meters = draft.toList()))
-        toast(if (ok) "حُفظت المعايرة (مع مرجع تعويض الاهتزاز)" else "التقط لقطة أولًا")
+        toast(if (ok) "حُفظت المعايرة وطُبّقت فورًا (مع مرجع تعويض الاهتزاز)" else "التقط لقطة أولًا")
     }
 
     private fun analyzeVideo() {
@@ -334,7 +335,7 @@ class MainActivity : AppCompatActivity(), MonitorEngine.UiListener {
                     minSwingDeg = v(4, s.minSwingDeg), endToleranceSec = v(5, s.endToleranceSec),
                     minOverlapSec = s.minOverlapSec, gapSec = s.gapSec,
                 )
-                engine.store.save(engine.cfg.copy(swing = n)); engine.cfg = engine.store.load()
+                engine.store.save(engine.cfg.copy(swing = n)); engine.cfg = engine.store.load(); engine.reloadPipeline()
             }.setNegativeButton("إلغاء", null).show()
     }
 

@@ -235,7 +235,18 @@ class MonitorEngine(private val ctx: Context) : FrameSource.Listener {
         val m = stillMat ?: return false
         newCfg.meters.forEachIndexed { i, mc -> store.saveReference(i, Roi.extract(m, mc)) }
         store.save(newCfg); cfg = newCfg
+        reloadPipeline()
         true
+    }
+
+    /** يطبّق المعايرة/الإعدادات المحفوظة فورًا على المعالجة الجارية (بدل انتظار إعادة الاتصال). */
+    fun reloadPipeline() {
+        if (!running) return
+        wh.post {
+            val old = pipeline
+            old?.swing?.flush()
+            pipeline = newPipeline()
+        }
     }
 
     // ---------- فحص الدقة على فيديو ----------
