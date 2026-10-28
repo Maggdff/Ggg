@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # تجميع النواة بـ kotlinc وتشغيلها على فيديو حقيقي. الاستخدام: run.sh video.mp4 [kotlinc]
 set -euo pipefail
+# حوّل المسارات النسبية إلى مطلقة *قبل* cd (وإلا يُفسَّر testdata/meter.mp4 نسبةً إلى verify/)
+VIDEO=${1:-$(dirname "$0")/../testdata/meter.mp4}; KC=${2:-kotlinc}
+VIDEO=$(realpath "$VIDEO")
+[[ "$KC" == */* ]] && KC=$(realpath "$KC")
+[ -f "$VIDEO" ] || { echo "الفيديو غير موجود: $VIDEO" >&2; exit 2; }
 cd "$(dirname "$0")"
-VIDEO=${1:-../testdata/meter.mp4}; KC=${2:-kotlinc}
 CORE=../app/src/main/java/com/smartwater/monitor/core
 mkdir -p build d0 d3
 $KC $CORE/*.kt Verify.kt SelfTest.kt -include-runtime -d build/verify.jar 2>&1 | grep -v '^warning' || true

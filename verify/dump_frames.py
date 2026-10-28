@@ -12,7 +12,9 @@ cap = cv2.VideoCapture(video)
 fps = cap.get(cv2.CAP_PROP_FPS) or 20.0
 files = {m[0]: open(f"{out}/frames_{m[0]}.bin", "wb") for m in METERS}
 # مرجع المعايرة: ROI من الإطار الأول بدون اهتزاز (مثل شاشة المعايرة في التطبيق)
-cap0 = cv2.VideoCapture(video); ok0, f0 = cap0.read(); g0 = cv2.cvtColor(f0, cv2.COLOR_BGR2GRAY)
+cap0 = cv2.VideoCapture(video); ok0, f0 = cap0.read()
+if not ok0: sys.exit(f"تعذّر فتح الفيديو: {video}")
+g0 = cv2.cvtColor(f0, cv2.COLOR_BGR2GRAY)
 for name, cx, cy, R in METERS:
     ox, oy = cx - HALF, cy - HALF
     roi0 = cv2.GaussianBlur(g0[oy:oy + 2 * HALF, ox:ox + 2 * HALF], (0, 0), 1.2)
