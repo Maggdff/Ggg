@@ -40,6 +40,7 @@ private class IsapiSnapshotSource(
     private var worker: Thread? = null
     private var lastStatus = ""
     private var consecutiveErrors = 0
+    private var disconnectedNotified = false
 
     override fun start(listener: FrameSource.Listener) {
         if (running) return
@@ -69,15 +70,23 @@ private class IsapiSnapshotSource(
                         listener.onFrame(gray, w, h, SystemClock.elapsedRealtimeNanos() / 1e9)
                         lastFrameAt = SystemClock.elapsedRealtime()
                         consecutiveErrors = 0
+                        disconnectedNotified = false
                         status(listener, "متصل عبر HTTP/ISAPI — القناة $ch — لقطات متتابعة")
                     } catch (e: Exception) {
                         consecutiveErrors++
-                        if (consecutiveErrors == 1 || consecutiveErrors % 5 == 0) {
-                            val detail = e.message ?: e.javaClass.simpleName
-                            status(listener, "فشل جلب لقطة ISAPI ($consecutiveErrors): $detail. تحقق من HTTP/ISAPI والمنفذ والصلاحيات.")
-                        }
+                        val detail = e.message ?: e.javaClass.simpleName
+                        val shouldShowError = consecutiveErrors == 1 || consecutiveErrors % 5 == 0
                         if (lastFrameAt == 0L || SystemClock.elapsedRealtime() - lastFrameAt > 3000) {
-                            listener.onDisconnected()
+                            if (!disconnectedNotified) {
+                                disconnectedNotified = true
+                                listener.onDisconnected()
+                            }
+                            // أظهر السبب الحقيقي بعد رسالة الانقطاع العامة حتى لا تختفي تفاصيل الخطأ.
+                            if (shouldShowError) {
+                                status(listener, "فشل جلب لقطة ISAPI ($consecutiveErrors): $detail. تحقق من عنوان الجهاز والمنفذ 80 وصلاحيات HTTP/ISAPI.")
+                            }
+                        } else if (shouldShowError) {
+                            status(listener, "تعثر مؤقت في جلب لقطة ISAPI ($consecutiveErrors): $detail")
                         }
                         Thread.sleep(if (consecutiveErrors < 3) 700L else 1500L)
                     }
