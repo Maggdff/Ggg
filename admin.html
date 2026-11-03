@@ -27,7 +27,7 @@ details.q[open]{padding-bottom:12px}.op{display:flex;gap:8px;align-items:flex-st
 <script>
 const $=s=>document.querySelector(s);let L=[],pw=sessionStorage.getItem("pw")||"",dirty=false,open=new Set();
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-async function api(b){const r=await fetch("/api/questions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,...b})});let d={};try{d=await r.json()}catch(e){}return{ok:r.ok,d}}
+async function api(b){let r;try{r=await fetch("/api/questions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:pw,...b})})}catch(e){return{ok:false,status:0,d:{error:"تعذر الوصول للخادم: تأكد من فتح الصفحة من رابط Vercel وليس من ملف على جهازك"}}}let d={};try{d=await r.json()}catch(e){}if(!r.ok&&!d.error)d.error=r.status==404?"الخادم غير موجود (404): ملف api/questions.js غير منشور. تأكد أنه داخل مجلد api في جذر المستودع ثم أعد النشر":"خطأ من الخادم ("+r.status+")";return{ok:r.ok,status:r.status,d}}
 async function login(p){pw=p;const r=await api({action:"login"});if(!r.ok){pw="";sessionStorage.removeItem("pw");$("#le").textContent=r.d.error||"تعذر الاتصال";return}
 sessionStorage.setItem("pw",pw);$("#lg").hidden=true;$("#ap").hidden=false;await load()}
 async function load(){let d=[];try{d=await(await fetch("/api/questions",{cache:"no-store"})).json()}catch(e){}
